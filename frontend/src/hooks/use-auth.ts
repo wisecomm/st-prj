@@ -3,15 +3,17 @@
 import { useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { setAccessToken } from "@/lib/api-client";
 
 export function useAuth() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
+  // Force re-login when refresh token has expired
   useEffect(() => {
-    setAccessToken(session?.accessToken ?? null);
-  }, [session?.accessToken]);
+    if (session?.error === "RefreshTokenExpired") {
+      signOut({ callbackUrl: "/login" });
+    }
+  }, [session?.error]);
 
   const login = async (username: string, password: string) => {
     const result = await signIn("credentials", {
@@ -38,7 +40,6 @@ export function useAuth() {
     isAuthenticated: status === "authenticated",
     isLoading: status === "loading",
     user: session?.user,
-    accessToken: session?.accessToken,
     login,
     logout,
   };

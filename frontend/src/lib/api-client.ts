@@ -1,23 +1,10 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:8080/api",
+  baseURL: "/api/backend",
   headers: {
     "Content-Type": "application/json",
   },
-});
-
-let cachedToken: string | null = null;
-
-export function setAccessToken(token: string | null) {
-  cachedToken = token;
-}
-
-apiClient.interceptors.request.use((config) => {
-  if (cachedToken) {
-    config.headers.Authorization = `Bearer ${cachedToken}`;
-  }
-  return config;
 });
 
 apiClient.interceptors.response.use(
