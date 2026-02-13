@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/st_prj_dev
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+jwt:
+  secret: dev-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm-replace-me
+  access-token-expiration: 3600000
+  refresh-token-expiration: 604800000
+
+cors:
+  allowed-origins: http://localhost:3000
+
+logging:
+  level:
+    root: INFO
+    com.example.springrest: DEBUG

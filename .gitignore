@@ -1,0 +1,20 @@
+
+# IDEs
+.idea
+.vscode
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backend (Gradle)
+.gradle
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Root / Misc
+.cloude
+tmp/
+*.log
