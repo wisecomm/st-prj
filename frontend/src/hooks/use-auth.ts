@@ -1,11 +1,17 @@
 "use client";
 
+import { useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { setAccessToken } from "@/lib/api-client";
 
 export function useAuth() {
   const { data: session, status } = useSession();
   const router = useRouter();
+
+  useEffect(() => {
+    setAccessToken(session?.accessToken ?? null);
+  }, [session?.accessToken]);
 
   const login = async (username: string, password: string) => {
     const result = await signIn("credentials", {

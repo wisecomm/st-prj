@@ -81,7 +81,11 @@ public class JwtTokenProvider {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-        return claims.getSubject();
+        String subject = claims.getSubject();
+        if (subject == null || subject.isBlank()) {
+            throw new IllegalArgumentException("JWT token does not contain a valid subject");
+        }
+        return subject;
     }
 
     public boolean validateToken(String token) {
@@ -113,7 +117,8 @@ public class JwtTokenProvider {
                     .parseSignedClaims(token)
                     .getPayload();
             return "refresh".equals(claims.get("type", String.class));
-        } catch (Exception e) {
+        } catch (io.jsonwebtoken.JwtException | IllegalArgumentException e) {
+            log.warn("Failed to check refresh token type: {}", e.getMessage());
             return false;
         }
     }

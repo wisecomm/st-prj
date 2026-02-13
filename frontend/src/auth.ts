@@ -23,6 +23,7 @@ declare module "next-auth" {
 }
 
 const authConfig: NextAuthConfig = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     Credentials({
       name: "credentials",
@@ -56,7 +57,8 @@ const authConfig: NextAuthConfig = {
             accessToken: data.data?.accessToken,
             refreshToken: data.data?.refreshToken,
           };
-        } catch {
+        } catch (error) {
+          console.error("[auth] Login failed:", error);
           return null;
         }
       },

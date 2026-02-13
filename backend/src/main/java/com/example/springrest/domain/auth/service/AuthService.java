@@ -43,10 +43,12 @@ public class AuthService {
         String refreshToken = request.getRefreshToken();
 
         if (!jwtTokenProvider.validateToken(refreshToken)) {
+            log.warn("Token refresh failed: invalid refresh token");
             throw new BusinessException(ErrorCode.INVALID_TOKEN, "Invalid refresh token");
         }
 
         if (!jwtTokenProvider.isRefreshToken(refreshToken)) {
+            log.warn("Token refresh failed: token is not a refresh token");
             throw new BusinessException(ErrorCode.INVALID_TOKEN, "Token is not a refresh token");
         }
 
