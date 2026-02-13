@@ -1,5 +1,6 @@
 package com.example.springrest.global.security;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,6 +10,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -41,8 +43,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+        } catch (JwtException e) {
+            log.warn("Invalid JWT token: {}", e.getMessage());
+        } catch (UsernameNotFoundException e) {
+            log.warn("User not found for valid token: {}", e.getMessage());
         } catch (Exception e) {
-            log.error("Could not set user authentication in security context: {}", e.getMessage());
+            log.error("Unexpected error during authentication", e);
         }
 
         filterChain.doFilter(request, response);

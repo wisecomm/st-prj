@@ -6,6 +6,7 @@ import com.example.springrest.global.exception.BusinessException;
 import com.example.springrest.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Log4j2
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public User findByUsername(String username) {
         User user = userMapper.findByUsername(username);
@@ -35,6 +37,7 @@ public class UserService {
         if (userMapper.findByUsername(user.getUsername()) != null) {
             throw new BusinessException(ErrorCode.DUPLICATE_USERNAME);
         }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userMapper.insert(user);
     }
 }
