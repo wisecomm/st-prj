@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.springrest.domain.order.repository.OrderMapper">
+
+
+    <sql id="OrderColumns">
+        order_id, cust_nm, order_nm, order_status, order_amt, order_date, use_yn,
+        sys_insert_dtm, sys_insert_user_id, sys_update_dtm, sys_update_user_id
+    </sql>
+
+    <select id="findById" resultType="com.example.springrest.domain.order.model.entity.Order">
+        SELECT <include refid="OrderColumns"/>
+        FROM tb_orders
+        WHERE order_id = #{orderId}
+    </select>
+
+    <select id="findAll" resultType="com.example.springrest.domain.order.model.entity.Order">
+        SELECT <include refid="OrderColumns"/>
+        FROM tb_orders
+        ORDER BY sys_insert_dtm DESC
+    </select>
+
+    <select id="findAllWithSearch" resultType="com.example.springrest.domain.order.model.entity.Order">
+        SELECT <include refid="OrderColumns"/>
+        FROM tb_orders
+        <where>
+            <if test="custNm != null and custNm != ''">
+                AND cust_nm LIKE CONCAT('%', #{custNm}, '%')
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND order_date &gt;= #{startDate}::timestamp
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND order_date &lt;= #{endDate}::timestamp
+            </if>
+        </where>
+        <choose>
+            <when test="sort != null and sort != ''">
+                ORDER BY ${sort}
+            </when>
+            <otherwise>
+                ORDER BY sys_insert_dtm DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <insert id="insert">
+        INSERT INTO tb_orders (
+            <include refid="OrderColumns"/>
+        ) VALUES (
+            #{orderId}, #{custNm}, #{orderNm}, #{orderStatus}, #{orderAmt}, #{orderDate}, #{useYn},
+            NOW(), #{sysInsertUserId}, NOW(), #{sysUpdateUserId}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE tb_orders
+        SET cust_nm = #{custNm},
+            order_nm = #{orderNm},
+            order_status = #{orderStatus},
+            order_amt = #{orderAmt},
+            order_date = #{orderDate},
+            use_yn = #{useYn},
+            sys_update_dtm = NOW(),
+            sys_update_user_id = #{sysUpdateUserId}
+        WHERE order_id = #{orderId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM tb_orders
+        WHERE order_id = #{orderId}
+    </delete>
+</mapper>

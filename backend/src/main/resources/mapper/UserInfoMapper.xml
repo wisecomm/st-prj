@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.springrest.domain.user.repository.UserInfoMapper">
+
+
+    <sql id="UserInfoColumns">
+        u.USER_ID, u.USER_EMAIL, u.USER_MOBILE, u.USER_NAME, u.USER_NICK, u.USER_PWD, u.USER_MSG, u.USER_DESC, 
+        u.USER_STAT_CD, u.USER_PROVIDER, u.USER_SNSID, u.USE_YN, 
+        u.SYS_INSERT_DTM, u.SYS_INSERT_USER_ID, u.SYS_UPDATE_DTM, u.SYS_UPDATE_USER_ID
+    </sql>
+
+    <sql id="UserInfoColumnsPlain">
+        USER_ID, USER_EMAIL, USER_MOBILE, USER_NAME, USER_NICK, USER_PWD, USER_MSG, USER_DESC, 
+        USER_STAT_CD, USER_PROVIDER, USER_SNSID, USE_YN, 
+        SYS_INSERT_DTM, SYS_INSERT_USER_ID, SYS_UPDATE_DTM, SYS_UPDATE_USER_ID
+    </sql>
+
+    <select id="findById" resultType="com.example.springrest.domain.user.model.entity.UserInfo">
+        SELECT 
+            <include refid="UserInfoColumns"/>
+        FROM CHMM_USER_INFO u
+        WHERE u.USER_ID = #{userId}
+    </select>
+
+    <select id="findByUserEmail" resultType="com.example.springrest.domain.user.model.entity.UserInfo">
+        SELECT 
+            <include refid="UserInfoColumns"/>
+        FROM CHMM_USER_INFO u
+        WHERE u.USER_EMAIL = #{userEmail}
+        LIMIT 1
+    </select>
+
+    <select id="findAll" resultType="com.example.springrest.domain.user.model.entity.UserInfo">
+        SELECT 
+            <include refid="UserInfoColumns"/>
+        FROM CHMM_USER_INFO u
+        ORDER BY u.USER_ID ASC
+    </select>
+
+    <select id="findAllWithSearch" resultType="com.example.springrest.domain.user.model.entity.UserInfo">
+        SELECT 
+            <include refid="UserInfoColumns"/>
+        FROM CHMM_USER_INFO u
+        <where>
+            <if test="userName != null and userName != ''">
+                AND u.USER_NAME LIKE CONCAT('%', #{userName}, '%')
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND u.SYS_INSERT_DTM &gt;= #{startDate}::timestamp
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND u.SYS_INSERT_DTM &lt;= #{endDate}::timestamp
+            </if>
+        </where>
+        <choose>
+            <when test="sort != null and sort != ''">
+                ORDER BY ${sort}
+            </when>
+            <otherwise>
+                ORDER BY u.USER_ID ASC
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="findRolesByUserId" resultType="com.example.springrest.domain.user.model.enums.UserRole">
+        SELECT ROLE_ID
+        FROM CHMM_USER_ROLE_MAP
+        WHERE USER_ID = #{userId} AND USE_YN = '1'
+    </select>
+
+    <insert id="insert">
+        INSERT INTO CHMM_USER_INFO (
+            <include refid="UserInfoColumnsPlain"/>
+        ) VALUES (
+            #{userId}, #{userEmail}, #{userMobile}, #{userName}, #{userNick}, #{userPwd}, #{userMsg}, #{userDesc}, 
+            #{userStatCd}, #{userProvider}, #{userSnsid}, #{useYn}, 
+            NOW(), #{sysInsertUserId}, NOW(), #{sysUpdateUserId}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE CHMM_USER_INFO
+        SET USER_EMAIL = #{userEmail},
+            USER_MOBILE = #{userMobile},
+            USER_NAME = #{userName},
+            USER_NICK = #{userNick},
+            USER_MSG = #{userMsg},
+            USER_DESC = #{userDesc},
+            USER_STAT_CD = #{userStatCd},
+            USER_PROVIDER = #{userProvider},
+            USER_SNSID = #{userSnsid},
+            USE_YN = #{useYn},
+            SYS_UPDATE_DTM = NOW(),
+            SYS_UPDATE_USER_ID = #{sysUpdateUserId}
+        WHERE USER_ID = #{userId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM CHMM_USER_INFO
+        WHERE USER_ID = #{userId}
+    </delete>
+</mapper>

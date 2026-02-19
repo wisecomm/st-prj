@@ -1,0 +1,37 @@
+  1. speckit.constitution (핵심 원칙/일반 규칙)
+
+    * 문서 작성은 한국어로 해줘
+   * Gradle
+   * JDK21
+   * Spring Boot 3.4.1
+   * PostgreSQL, Flyway
+   * mybatis
+   * lombok
+   * swagger 지원   
+   * Log4j2 로깅 
+   * docker 관련 작업은 하지 않음
+
+  2. speckit.specify (특정 작업 요구사항)
+   * spring 프로젝트 이름 springrest, 패키지 이름은 kr.softone.springrest 로 사용
+   * 사용자 인증을 위해 JWT 기반의 로그인 기능을 구현해야 한다 (refresh token 사용)
+   * jwt 만료 시간은 30분
+   * jwt tocken 정보로 사용자 정보를 확인할수 있는 유틸리티성 함수 제공
+   * API 버전 관리 (/api/v1) 
+   * rest api 리턴값은 지정된 json 형태로 리턴값 아래참조
+      {
+         "code": "200",
+          "message": "SUCCESS",
+          "data" : "" 
+      }
+
+   * swagger 사용은 개발모드에서 만 지원, 운영모드 지원 제외
+
+
+
+############################################################
+# 확인 작업
+############################################################
+- WebMvcTest : 건너띰
+- Flyway 사용
+
+

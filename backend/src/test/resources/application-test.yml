@@ -1,21 +1,41 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=PostgreSQL
-    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
     username: sa
     password:
   flyway:
-    enabled: false
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
 
 mybatis:
-  mapper-locations: classpath:mapper/**/*.xml
+  mapper-locations: classpath:mapper/*.xml
   configuration:
     map-underscore-to-camel-case: true
 
 jwt:
-  secret: test-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm
-  access-token-expiration: 3600000
-  refresh-token-expiration: 604800000
+  secret: +F7Wq6PrRGUw7Ig+UUEHP2xQZFyURaNu1HjTpfUi5Q0=
+  expiration: 86400000
+  refresh-expiration: 604800000
 
-cors:
-  allowed-origins: http://localhost:3000
+app:
+  cors:
+    allowed-origins: "*"
+
+jasypt:
+  encryptor:
+    password: "test" 
+    algorithm: "PBEWithMD5AndDES"
+    key-obtention-iterations: "1000"
+    pool-size: "1"
+    provider-name: "SunJCE"
+    salt-generator-classname: "org.jasypt.salt.RandomSaltGenerator"
+    iv-generator-classname: "org.jasypt.iv.NoIvGenerator"
+    string-output-type: "base64"
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    com.example.springrest: DEBUG

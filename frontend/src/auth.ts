@@ -28,7 +28,7 @@ const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
 
 async function refreshAccessToken(refreshToken: string) {
   try {
-    const res = await fetch(`${process.env.BACKEND_API_URL}/auth/refresh`, {
+    const res = await fetch(`${process.env.BACKEND_API_URL}/v1/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),
@@ -74,13 +74,13 @@ const authConfig: NextAuthConfig = {
       async authorize(credentials) {
         try {
           const res = await fetch(
-            `${process.env.BACKEND_API_URL}/auth/login`,
+            `${process.env.BACKEND_API_URL}/v1/auth/login`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                username: credentials?.username,
-                password: credentials?.password,
+                userId: credentials?.username,
+                userPwd: credentials?.password,
               }),
             }
           );

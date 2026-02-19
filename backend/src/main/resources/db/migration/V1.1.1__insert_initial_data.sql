@@ -1,0 +1,47 @@
+-- V5__Insert_Initial_Data.sql
+-- 기초 데이터 (공통 코드, 관리자 계정, 초기 메뉴 등) 입력 샘플
+
+-- 1. 초기 역할(Role) 등록
+INSERT INTO CHMM_ROLE_INFO (ROLE_ID, ROLE_NAME, ROLE_DESC, USE_YN, SYS_INSERT_DTM, SYS_INSERT_USER_ID, SYS_UPDATE_DTM, SYS_UPDATE_USER_ID) VALUES
+	 ('ROLE_ADMIN','role admin','롤 어드민','1','2025-12-30 11:22:27.938','','2025-12-30 14:26:54.003071',NULL),
+	 ('ROLE_USER','role user','롤 유저','1','2025-12-30 11:24:19.535','','2025-12-30 15:17:40.137577',NULL),
+	 ('ROLE_GUEST','role guest','롤 게스트','1','2025-12-30 11:24:49.325','','2025-12-30 15:37:14.981139',NULL);
+
+-- 2. 사용자 계정 생성 (비밀번호: 12345678 의 BCrypt 해시 예시)
+INSERT INTO CHMM_USER_INFO (USER_ID, USER_EMAIL, USER_MOBILE, USER_NAME, USER_NICK, USER_PWD, USER_MSG, USER_DESC, USER_STAT_CD, USER_SNSID, USE_YN, SYS_INSERT_DTM, SYS_INSERT_USER_ID, SYS_UPDATE_DTM, SYS_UPDATE_USER_ID) VALUES
+	 ('user01','danyoh@gmail.com',NULL,'유저일','nick01','$2a$10$Ebbfmi7r2WyICkjoGyNv1.Cl3x0y2c3NUxjL9OiqcX9usihBtTV3y',NULL,NULL,NULL,NULL,'1','2025-12-30 14:27:56.307087',NULL,'2025-12-30 14:27:56.307087',NULL),
+	 ('guest01','danyoh@gmail.com',NULL,'게스트','닉 게스트','$2a$10$6ow/huMZnWWEsS7NzY1lN.UZGl9g2UjOI1BTncPi.1IrxilpEqpLm',NULL,NULL,NULL,NULL,'1','2025-12-30 15:38:15.602546',NULL,'2025-12-30 15:38:15.602546',NULL),
+	 ('admin','test@email.com',NULL,'홍길동','nick admin','$2a$10$Ebbfmi7r2WyICkjoGyNv1.Cl3x0y2c3NUxjL9OiqcX9usihBtTV3y',NULL,NULL,NULL,NULL,'1','2025-12-30 10:50:47.664','','2025-12-30 14:23:21.354898',NULL);
+
+-- 3. 사용자-역할 매핑
+INSERT INTO CHMM_USER_ROLE_MAP (USER_ID, ROLE_ID, USE_YN, SYS_INSERT_DTM) VALUES
+	 ('admin','ROLE_ADMIN','1','2025-12-30 14:23:21.374729'),
+	 ('user01','ROLE_USER','1','2025-12-30 14:27:56.322862'),
+	 ('guest01','ROLE_GUEST','1','2025-12-30 15:38:15.695618');
+
+-- 4. 초기 메뉴 등록
+INSERT INTO CHMM_MENU_INFO (MENU_ID, MENU_LVL, MENU_URI, MENU_IMG_URI, MENU_NAME, UPPER_MENU_ID, MENU_DESC, MENU_SEQ, USE_YN, SYS_INSERT_DTM, SYS_INSERT_USER_ID, SYS_UPDATE_DTM, SYS_UPDATE_USER_ID) VALUES
+	 ('M00000',1,NULL,'/images/menus/settings.svg','최상위메뉴',NULL,NULL,0,'1','2025-12-30 13:41:23.694',NULL,'2025-12-30 13:41:23.694',NULL),
+	 ('M10000',2,'/mainmenu','/images/menus/dashboard.svg','대시보드','M00000','',0,'1','2025-12-30 10:55:51.501','','2025-12-30 10:59:02.590',''),
+	 ('M20000',2,'','/images/menus/settings.svg','관리','M00000','',1,'1','2025-12-30 11:00:20.916','','2025-12-30 11:02:54.488',''),
+	 ('M30000',2,'','/images/menus/about.svg','정보','M00000','',2,'1','2025-12-30 11:02:36.663','','2025-12-30 11:03:02.387',''),
+	 ('M31000',3,'/about','/images/menus/about.svg','소계','M30000','',0,'1','2025-12-30 13:13:06.472','','2025-12-30 13:13:06.472',''),
+	 ('M32000',3,'','/images/menus/about.svg','환영합니다','M30000','',0,'1','2025-12-30 13:13:56.815','','2025-12-30 13:13:56.815',''),
+	 ('M21000',3,'/users','/images/menus/users.svg','사용자 관리','M20000',NULL,1,'1','2025-12-30 13:07:19.393','','2026-01-09 15:59:35.309',NULL),
+	 ('M22000',3,'/menus','/images/menus/menus.svg','메뉴 관리','M20000',NULL,2,'1','2025-12-30 13:08:29.616','','2026-01-09 15:59:48.098',NULL),
+	 ('M23000',3,'/roles','/images/menus/settings.svg','역활 관리','M20000',NULL,3,'1','2025-12-30 13:09:23.085','','2026-01-09 15:59:55.810',NULL);
+
+-- 5. 역할-메뉴 권한 매핑
+INSERT INTO CHMM_ROLE_MENU_MAP (ROLE_ID, MENU_ID, USE_YN, SYS_INSERT_DTM) VALUES
+	 ('ROLE_USER','M10000','1','2025-12-30 15:17:40.158'),
+	 ('ROLE_USER','M31000','1','2025-12-30 15:17:40.158'),
+	 ('ROLE_USER','M32000','1','2025-12-30 15:17:40.158'),
+	 ('ROLE_GUEST','M31000','1','2025-12-30 15:37:15.013'),
+	 ('ROLE_GUEST','M32000','1','2025-12-30 15:37:15.013'),
+	 ('ROLE_ADMIN','M10000','1','2026-01-09 16:01:16.322'),
+	 ('ROLE_ADMIN','M21000','1','2026-01-09 16:01:16.322'),
+	 ('ROLE_ADMIN','M22000','1','2026-01-09 16:01:16.322'),
+	 ('ROLE_ADMIN','M23000','1','2026-01-09 16:01:16.322'),
+	 ('ROLE_ADMIN','M31000','1','2026-01-09 16:01:16.322'),
+	 ('ROLE_ADMIN','M32000','1','2026-01-09 16:01:16.322');
+

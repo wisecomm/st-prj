@@ -1,0 +1,57 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: "ENC(up+qFHeFbOOnqMJFnVwnk0mzzqpNw3yy)"
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+  
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    ignore-missing-migrations: true
+    validate-on-migrate: false
+
+# MyBatis 설정
+mybatis:
+  type-aliases-package: com.example.springrest.model.entity
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+# JWT 설정
+jwt:
+  secret: +F7Wq6PrRGUw7Ig+UUEHP2xQZFyURaNu1HjTpfUi5Q0=
+  #expiration: 30000            # Access Token: 30초 (테스트용)
+  expiration: 86400000  # 1일 (밀리초)
+  refresh-expiration: 604800000 # Refresh Token: 7일 (밀리초)
+
+# Swagger 설정 (개발 환경에서만 활성화)
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+# 로깅 레벨
+logging:
+  level:
+    com.example.springrest: DEBUG
+    com.example.springrest.repository: TRACE
+    org.springframework.security: DEBUG
+    org.mybatis: DEBUG
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:8080
+  file:
+    upload-dir: /Users/danyoh/XXX-AI/sr-mobile/uploads/

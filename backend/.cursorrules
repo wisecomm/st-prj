@@ -1,0 +1,77 @@
+
+You are an expert in Java 21, Spring Boot 3.x, and Gradle.
+Your task is to write clean, efficient, and maintainable backend code for a REST API service using **MyBatis** and **PostgreSQL**.
+
+### Tech Stack & Core Dependencies
+- **Language**: Java 21 (Use `var`, Records, Pattern Matching where appropriate).
+- **Framework**: Spring Boot 3.5.x.
+- **Build Tool**: Gradle (Groovy DSL).
+- **Database**: PostgreSQL.
+- **ORM/SQL**: **MyBatis** (Mapper Interface style) + PageHelper for pagination.
+- **Logging**: **Log4j2** (Do NOT use Logback; it is excluded).
+- **Utilities**: Lombok, MapStruct (for DTO mapping), Jasypt (encryption).
+- **Migrations**: Flyway.
+
+### Code Style and Structure
+- **Controller**: RESTful endpoints. Use `@RestController`, `@RequestMapping`.
+- **Service**: Business logic. Use `@Service`. Transactional read-only by default (`@Transactional(readOnly = true)`).
+- **Mapper**: MyBatis interfaces annotated with `@Mapper`. Use SQL in XML files (or annotations if simple).
+- **DTO**: Use Java `record` or Lombok `@Data` for DTOs.
+- **Model**: Domain entities matching DB tables.
+
+### Development Rules
+1. **MyBatis over JPA**:
+   - Do NOT use Spring Data JPA or Hibernate logic.
+   - Use `Mapper` interfaces for all database interactions.
+   - Use `PageHelper` for pagination logic.
+
+2. **Logging**:
+   - Use `@Log4j2` annotation from Lombok.
+   - Log levels: `ERROR` (Action required), `WARN` (Potential issue), `INFO` (Business event), `DEBUG` (Dev tracing).
+
+3. **Data Mapping**:
+   - ALWAYS use **MapStruct** to convert between Entity and DTO.
+   - Do not write manual conversion code in Services.
+
+4. **Security**:
+   - Use Spring Security.
+   - Passwords must be encoded using BCrypt.
+
+5. **API Documentation**:
+   - Use Springdoc OpenAPI (Swagger) annotations for API docs.
+
+### Build & Deploy
+- Use `./gradlew build` to build.
+- Use `./gradlew bootRun` to run locally.
+- Use project-defined tasks `buildDeployDev` / `buildDeployProd` for deployment artifacts.
+
+### Naming Conventions
+- Classes: `PascalCase` (e.g., `UserMapper`, `AuthService`).
+- Methods/Vars: `camelCase`.
+- Tables/Columns: `snake_case` (PostgreSQL standard).
+- Constants: `UPPER_SNAKE_CASE`.
+
+### Methodology
+1. **Analyze**: Understand the requirement and existing schema.
+2. **Plan**: Define the API endpoint, DTOs, and SQL query needed.
+3. **Implement**:
+   - Create/Update DTOs.
+   - Write SQL in Mapper XML.
+   - Implement Service logic.
+   - Expose Controller endpoint.
+4. **Verify**: Ensure the code builds with Gradle and tests pass.
+
+### Project Directory Structure
+- **Root Package**: `com.example.springrest`
+- **Standard Layers** (under `domain/{feature}/`):
+  - `controller/`: REST API Controllers (`@RestController`).
+  - `service/`: Business Logic (`@Service`).
+  - `repository/`: MyBatis Mapper Interfaces (`@Mapper`).
+  - `model/`: DTOs and Entities.
+- **Global Configs** (under `global/`):
+  - `config/`: Spring Configurations.
+  - `exception/`: Global Exception Handling (`@ControllerAdvice`).
+  - `security/`: Auth & Security Logic.
+- **Resources**:
+  - `src/main/resources/mapper/`: MyBatis XML Mapper files.
+  - `src/main/resources/application.yml`: Main configuration.

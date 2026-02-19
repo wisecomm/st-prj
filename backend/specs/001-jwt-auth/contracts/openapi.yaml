@@ -1,0 +1,423 @@
+openapi: 3.0.3
+info:
+  title: Spring REST API - JWT Authentication
+  description: |
+    JWT 기반 인증 시스템 API 명세서
+    
+    **기능**:
+    - 로그인 (username/password → JWT 토큰 발급)
+    - 토큰 검증 (JWT 유효성 확인)
+    - 사용자 정보 조회 (JWT 기반)
+    
+    **인증 방식**: Bearer Token (JWT)
+    **토큰 만료 시간**: 30분
+    **지원 역할**: USER, ADMIN
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+  - url: https://api.example.com
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: 인증 관련 API
+
+paths:
+  /api/v1/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: 로그인
+      description: |
+        사용자명과 비밀번호로 로그인하여 JWT 토큰을 발급받습니다.
+        
+        **Rate Limiting**: 5회 연속 실패 시 5분간 차단
+        **성능 요구사항**: 
+        - 단일 요청: 3초 이내
+        - 100 동시 요청: p95 5초 이내
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              normalUser:
+                summary: 일반 사용자 로그인
+                value:
+                  userId: "testuser"
+                  userPwd: "password123"
+              adminUser:
+                summary: 관리자 로그인
+                value:
+                  userId: "admin"
+                  userPwd: "admin123"
+      responses:
+        '200':
+          description: 로그인 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+              examples:
+                success:
+                  summary: 로그인 성공 응답
+                  value:
+                    code: "200"
+                    message: "SUCCESS"
+                    data:
+                      token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlciIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNjQwOTk1MjAwLCJleHAiOjE2NDA5OTcwMDB9.signature"
+                      tokenType: "Bearer"
+                      expiresIn: 1800
+                      user:
+                        userId: "testuser"
+                        userEmail: "test@example.com"
+                        userRole: "ADMIN"
+        '400':
+          description: 잘못된 요청 (필수 필드 누락 또는 형식 오류)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                missingUsername:
+                  summary: username 필드 누락
+                  value:
+                    code: "400"
+                    message: "Username is required"
+                    data: null
+                invalidPassword:
+                  summary: password 길이 부족
+                  value:
+                    code: "400"
+                    message: "Password must be 8-100 characters"
+                    data: null
+        '401':
+          description: 인증 실패 (잘못된 사용자명 또는 비밀번호)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                invalidCredentials:
+                  summary: 인증 실패
+                  value:
+                    code: "401"
+                    message: "INVALID_CREDENTIALS"
+                    data: null
+        '429':
+          description: Rate limit 초과 (5회 연속 실패 후 5분간 차단)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                rateLimitExceeded:
+                  summary: Rate limit 초과
+                  value:
+                    code: "429"
+                    message: "TOO_MANY_FAILED_ATTEMPTS"
+                    data: null
+        '500':
+          description: 서버 내부 오류 (DB 연결 실패 등)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                serverError:
+                  summary: 서버 오류
+                  value:
+                    code: "500"
+                    message: "INTERNAL_SERVER_ERROR"
+                    data: null
+
+  /api/v1/auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: 현재 사용자 정보 조회
+      description: |
+        JWT 토큰을 기반으로 현재 로그인한 사용자의 정보를 조회합니다.
+        
+        **요구사항**: 
+        - Authorization 헤더에 유효한 JWT 토큰 필요
+        - 토큰 만료 시 401 에러 반환
+      operationId: getCurrentUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 사용자 정보 조회 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserInfo'
+              examples:
+                success:
+                  summary: 조회 성공
+                  value:
+                    code: "200"
+                    message: "SUCCESS"
+                    data:
+                      userId: "testuser"
+                      userEmail: "test@example.com"
+                      userRole: "ADMIN"
+        '401':
+          description: 인증 실패 (토큰 없음, 만료, 또는 유효하지 않음)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                missingToken:
+                  summary: 토큰 누락
+                  value:
+                    code: "401"
+                    message: "MISSING_TOKEN"
+                    data: null
+                expiredToken:
+                  summary: 토큰 만료
+                  value:
+                    code: "401"
+                    message: "TOKEN_EXPIRED"
+                    data: null
+                invalidToken:
+                  summary: 유효하지 않은 토큰
+                  value:
+                    code: "401"
+                    message: "INVALID_TOKEN"
+                    data: null
+
+  /api/v1/auth/validate:
+    post:
+      tags:
+        - Authentication
+      summary: JWT 토큰 검증
+      description: |
+        JWT 토큰의 유효성을 검증하고 사용자 정보를 반환합니다.
+        
+        **사용 사례**:
+        - 마이크로서비스 간 토큰 검증
+        - 클라이언트 측 토큰 유효성 확인
+      operationId: validateToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenValidationRequest'
+            examples:
+              validToken:
+                summary: 유효한 토큰 검증
+                value:
+                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlciIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNjQwOTk1MjAwLCJleHAiOjE2NDA5OTcwMDB9.signature"
+      responses:
+        '200':
+          description: 토큰 검증 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserInfo'
+              examples:
+                success:
+                  summary: 검증 성공
+                  value:
+                    code: "200"
+                    message: "SUCCESS"
+                    data:
+                      userId: "testuser"
+                      userEmail: "test@example.com"
+                      userRole: "ADMIN"
+        '400':
+          description: 잘못된 요청 (토큰 필드 누락)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                missingToken:
+                  summary: 토큰 필드 누락
+                  value:
+                    code: "400"
+                    message: "Token is required"
+                    data: null
+        '401':
+          description: 토큰 검증 실패 (만료 또는 유효하지 않음)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                expiredToken:
+                  summary: 토큰 만료
+                  value:
+                    code: "401"
+                    message: "TOKEN_EXPIRED"
+                    data: null
+                invalidToken:
+                  summary: 유효하지 않은 토큰
+                  value:
+                    code: "401"
+                    message: "INVALID_TOKEN"
+                    data: null
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT 토큰을 사용한 인증. 
+        예시: `Authorization: Bearer <token>`
+
+  schemas:
+    ApiResponse:
+      type: object
+      description: 모든 API 응답의 표준 래퍼 객체
+      properties:
+        code:
+          type: string
+          description: HTTP 상태 코드 문자열
+          example: "200"
+        message:
+          type: string
+          description: 응답 메시지 (성공 시 "SUCCESS", 실패 시 에러 코드)
+          example: "SUCCESS"
+        data:
+          type: object
+          description: 실제 응답 데이터 (타입은 엔드포인트마다 다름)
+          nullable: true
+
+    LoginRequest:
+      type: object
+      required:
+        - userId
+        - userPwd
+      properties:
+        userId:
+          type: string
+          minLength: 3
+          maxLength: 50
+          description: 사용자 아이디
+          example: "testuser"
+        userPwd:
+          type: string
+          minLength: 8
+          maxLength: 100
+          description: 비밀번호 (평문)
+          format: password
+          example: "password123"
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT 토큰
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlciIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNjQwOTk1MjAwLCJleHAiOjE2NDA5OTcwMDB9.signature"
+        tokenType:
+          type: string
+          description: 토큰 타입 (항상 "Bearer")
+          example: "Bearer"
+        expiresIn:
+          type: integer
+          format: int64
+          description: 토큰 만료 시간 (초 단위)
+          example: 1800
+        user:
+          $ref: '#/components/schemas/UserInfo'
+
+    UserInfo:
+      type: object
+      properties:
+        userId:
+          type: string
+          description: 사용자 ID
+          example: "testuser"
+        userName:
+          type: string
+          description: 사용자명
+          example: "테스트"
+        userEmail:
+          type: string
+          format: email
+          description: 이메일 주소
+          example: "test@example.com"
+        userRole:
+          type: string
+          enum: [USER, ADMIN]
+          description: 사용자 역할
+          example: "ADMIN"
+
+    TokenValidationRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: 검증할 JWT 토큰
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlciIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNjQwOTk1MjAwLCJleHAiOjE2NDA5OTcwMDB9.signature"
+
+  responses:
+    UnauthorizedError:
+      description: 인증 실패 또는 토큰 오류
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          examples:
+            unauthorized:
+              value:
+                code: "401"
+                message: "UNAUTHORIZED"
+                data: null
+
+    BadRequestError:
+      description: 잘못된 요청 (필드 검증 실패)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          examples:
+            badRequest:
+              value:
+                code: "400"
+                message: "BAD_REQUEST"
+                data: null
+
+    InternalServerError:
+      description: 서버 내부 오류
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          examples:
+            serverError:
+              value:
+                code: "500"
+                message: "INTERNAL_SERVER_ERROR"
+                data: null

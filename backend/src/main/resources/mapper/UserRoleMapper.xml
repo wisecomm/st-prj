@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.springrest.domain.user.repository.UserRoleMapper">
+
+
+    <select id="findByUserId" resultType="com.example.springrest.domain.user.model.entity.UserRoleMap">
+        SELECT USER_ID, ROLE_ID, USE_YN, SYS_INSERT_DTM
+        FROM CHMM_USER_ROLE_MAP
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO CHMM_USER_ROLE_MAP (USER_ID, ROLE_ID, USE_YN, SYS_INSERT_DTM)
+        VALUES (#{userId}, #{roleId}, #{useYn}, NOW())
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM CHMM_USER_ROLE_MAP
+        WHERE USER_ID = #{userId} AND ROLE_ID = #{roleId}
+    </delete>
+
+    <delete id="deleteByUserId">
+        DELETE FROM CHMM_USER_ROLE_MAP
+        WHERE USER_ID = #{userId}
+    </delete>
+</mapper>

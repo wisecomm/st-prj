@@ -1,78 +1,138 @@
 plugins {
-    id 'java'
-    id 'org.springframework.boot' version '3.5.10'
-    id 'io.spring.dependency-management' version '1.1.7'
+	id 'java'
+	id 'org.springframework.boot' version '3.5.10'
+	id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
 java {
-    sourceCompatibility = '21'
-}
-
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
 dependencies {
-    // Spring Boot Starters
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
+	// Spring Boot Starters
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	
+	// MyBatis
+	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
+	implementation 'com.github.pagehelper:pagehelper-spring-boot-starter:2.1.0'
+	
+	// PostgreSQL
+	runtimeOnly 'org.postgresql:postgresql'
+	
+	// JWT
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+	
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
 
-    // MyBatis
-    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
+	// MapStruct
+	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+	
+	// Log4j2
+	implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+	modules {
+		module('org.springframework.boot:spring-boot-starter-logging') {
+			replacedBy('org.springframework.boot:spring-boot-starter-log4j2', 'Use Log4j2 instead of Logback')
+		}
+	}
+	
+	// Swagger/OpenAPI
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+	
+	// Flyway for database migrations
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-database-postgresql'
 
-    // Flyway
-    implementation 'org.flywaydb:flyway-core'
-    implementation 'org.flywaydb:flyway-database-postgresql'
+	// Jasypt for property encryption
+	implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
 
-    // PostgreSQL
-    runtimeOnly 'org.postgresql:postgresql'
-
-    // JWT
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
-
-    // Swagger / OpenAPI
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
-
-    // Lombok
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-
-    // MapStruct
-    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
-    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
-
-    // Log4j2
-    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
-
-    // Test
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'com.h2database:h2'
-    testCompileOnly 'org.projectlombok:lombok'
-    testAnnotationProcessor 'org.projectlombok:lombok'
-}
-
-configurations.all {
-    exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+	// Excel (Apache POI)
+	implementation 'org.apache.poi:poi:5.2.5'
+	implementation 'org.apache.poi:poi-ooxml:5.2.5'
+	
+	// Test dependencies
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.3'
+	testImplementation 'com.h2database:h2'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+	useJUnitPlatform()
 }
 
-compileJava {
-    options.compilerArgs += [
-        '-Amapstruct.defaultComponentModel=spring'
-    ]
+// --- Deployment Tasks ---
+
+// Helper task to clean and prepare dist directory
+tasks.register('prepareDist') {
+    dependsOn 'bootJar'
+    doLast {
+        delete 'dist'
+        mkdir 'dist'
+        copy {
+            from 'build/libs'
+            into 'dist'
+            include '*.jar'
+        }
+    }
 }
+
+// Dev Deployment Build
+tasks.register('buildDeployDev') {
+    dependsOn 'clean', 'prepareDist'
+    group = 'deployment'
+    description = 'Builds the application for DEVELOPMENT and copies artifacts to dist/'
+    
+    doLast {
+        copy {
+            from 'src/main/resources'
+            into 'dist'
+            include 'application-dev.yml'
+            rename 'application-dev.yml', 'application.yml'
+        }
+        println "✅ Build for DEVELOPMENT completed in 'dist/' directory."
+    }
+}
+
+// Prod Deployment Build
+tasks.register('buildDeployProd') {
+    dependsOn 'clean', 'prepareDist'
+    group = 'deployment'
+    description = 'Builds the application for PRODUCTION and copies artifacts to dist/'
+    
+    doLast {
+        copy {
+            from 'src/main/resources'
+            into 'dist'
+            include 'application-prod.yml'
+            rename 'application-prod.yml', 'application.yml'
+        }
+        println "✅ Build for PRODUCTION completed in 'dist/' directory."
+    }
+}
+
+

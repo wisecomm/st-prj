@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.springrest.domain.menu.repository.MenuInfoMapper">
+
+
+    <sql id="MenuInfoColumns">
+        MENU_ID, MENU_LVL, MENU_URI, MENU_IMG_URI, MENU_NAME, UPPER_MENU_ID, MENU_DESC, MENU_SEQ, 
+        USE_YN, SYS_INSERT_DTM, SYS_INSERT_USER_ID, SYS_UPDATE_DTM, SYS_UPDATE_USER_ID
+    </sql>
+
+    <select id="findById" resultType="com.example.springrest.domain.menu.model.entity.MenuInfo">
+        SELECT <include refid="MenuInfoColumns"/>
+        FROM CHMM_MENU_INFO
+        WHERE MENU_ID = #{menuId}
+    </select>
+
+    <select id="findAll" resultType="com.example.springrest.domain.menu.model.entity.MenuInfo">
+        SELECT <include refid="MenuInfoColumns"/>
+        FROM CHMM_MENU_INFO
+        ORDER BY MENU_LVL, MENU_SEQ
+    </select>
+
+    <select id="findAllWithSearch" resultType="com.example.springrest.domain.menu.model.entity.MenuInfo">
+        SELECT <include refid="MenuInfoColumns"/>
+        FROM CHMM_MENU_INFO
+        <where>
+            <if test="searchId != null and searchId != ''">
+                (MENU_ID LIKE CONCAT('%', #{searchId}, '%')
+                OR MENU_NAME LIKE CONCAT('%', #{searchId}, '%'))
+            </if>
+        </where>
+        ORDER BY MENU_LVL, MENU_SEQ
+    </select>
+
+    <select id="findByUserId" resultType="com.example.springrest.domain.menu.model.entity.MenuInfo">
+        WITH RECURSIVE MENU_TREE AS (
+            -- Base case: menus directly assigned to user's roles
+            SELECT 
+                M.MENU_ID, M.MENU_LVL, M.MENU_URI, M.MENU_IMG_URI, M.MENU_NAME, 
+                M.UPPER_MENU_ID, M.MENU_DESC, M.MENU_SEQ, M.USE_YN, 
+                M.SYS_INSERT_DTM, M.SYS_INSERT_USER_ID, M.SYS_UPDATE_DTM, M.SYS_UPDATE_USER_ID
+            FROM CHMM_MENU_INFO M
+            JOIN CHMM_ROLE_MENU_MAP RM ON M.MENU_ID = RM.MENU_ID
+            JOIN CHMM_USER_ROLE_MAP UR ON RM.ROLE_ID = UR.ROLE_ID
+            WHERE UR.USER_ID = #{userId}
+              AND M.USE_YN = '1'
+              AND RM.USE_YN = '1'
+              AND UR.USE_YN = '1'
+            
+            UNION
+            
+            -- Recursive Case: parents of the menus found so far
+            SELECT 
+                P.MENU_ID, P.MENU_LVL, P.MENU_URI, P.MENU_IMG_URI, P.MENU_NAME, 
+                P.UPPER_MENU_ID, P.MENU_DESC, P.MENU_SEQ, P.USE_YN, 
+                P.SYS_INSERT_DTM, P.SYS_INSERT_USER_ID, P.SYS_UPDATE_DTM, P.SYS_UPDATE_USER_ID
+            FROM CHMM_MENU_INFO P
+            JOIN MENU_TREE T ON P.MENU_ID = T.UPPER_MENU_ID
+            WHERE P.USE_YN = '1'
+        )
+        SELECT DISTINCT * FROM MENU_TREE
+        ORDER BY MENU_LVL, MENU_SEQ
+    </select>
+
+    <insert id="insert">
+        INSERT INTO CHMM_MENU_INFO (
+            <include refid="MenuInfoColumns"/>
+        ) VALUES (
+            #{menuId}, #{menuLvl}, #{menuUri}, #{menuImgUri}, #{menuName}, #{upperMenuId}, #{menuDesc}, #{menuSeq}, 
+            #{useYn}, NOW(), #{sysInsertUserId}, NOW(), #{sysUpdateUserId}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE CHMM_MENU_INFO
+        SET MENU_LVL = #{menuLvl},
+            MENU_URI = #{menuUri},
+            MENU_IMG_URI = #{menuImgUri},
+            MENU_NAME = #{menuName},
+            UPPER_MENU_ID = #{upperMenuId},
+            MENU_DESC = #{menuDesc},
+            MENU_SEQ = #{menuSeq},
+            USE_YN = #{useYn},
+            SYS_UPDATE_DTM = NOW(),
+            SYS_UPDATE_USER_ID = #{sysUpdateUserId}
+        WHERE MENU_ID = #{menuId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM CHMM_MENU_INFO
+        WHERE MENU_ID = #{menuId}
+    </delete>
+</mapper>
