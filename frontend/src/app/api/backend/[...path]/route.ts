@@ -1,8 +1,8 @@
 import { getServerTokens } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
+import { serverEnv } from "@/lib/env";
 
-const BACKEND_API_URL =
-  process.env.BACKEND_API_URL ?? "http://localhost:8080/api";
+const BACKEND_API_URL = serverEnv.BACKEND_API_URL;
 
 const MAX_BODY_SIZE = 50 * 1024 * 1024; // 50MB (파일 업로드 포함)
 
