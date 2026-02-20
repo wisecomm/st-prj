@@ -5,12 +5,8 @@ export default auth((req) => {
   const pathname = req.nextUrl.pathname;
 
   // Public routes that don't require authentication
-  const publicRoutes = ["/login", "/about"];
+  const publicRoutes = ["/login", "/about", "/api/auth"];
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
-  const isAuthApi = pathname.startsWith("/api/auth");
-
-  // Allow auth API routes
-  if (isAuthApi) return;
 
   // Redirect logged-in users away from login page
   if (pathname.startsWith("/login") && isLoggedIn) {

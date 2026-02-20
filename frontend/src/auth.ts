@@ -25,8 +25,7 @@ declare module "next-auth" {
   }
 }
 
-// 갱신 여유 시간 (현재 백엔드 토큰 수명이 짧은 테스트 환경을 고려하여 15초로 설정)
-// const TOKEN_REFRESH_BUFFER_MS = 15 * 1000;
+// 갱신 여유 시간 (5분)
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
 
 async function refreshAccessToken(refreshToken: string) {
@@ -97,9 +96,8 @@ const authConfig: NextAuthConfig = {
           if (!res.ok) return null;
 
           const data = await res.json();
-          // danyoh : 2026-02-19 내부에러 확인 후 처리
           if (data.code !== '200') {
-            console.error("[auth] Login code failed:", data.code);
+            console.error("[auth] Login API failed:", data.code);
             return null;
           }
 
