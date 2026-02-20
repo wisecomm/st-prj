@@ -38,15 +38,7 @@ export function useMenuManagement(): UseMenuManagementReturn {
     // API 훅 - 메뉴는 트리 구조로 전체 목록이 필요하므로 큰 페이지 사이즈 사용
     const { data: menusData, isLoading, isError, error } = useMenus({ page: 1, size: 1000 });
 
-    useEffect(() => {
-        if (isError) {
-            toast({
-                title: '목록 조회 실패',
-                description: error?.message || '메뉴 목록을 불러오는 중 오류가 발생했습니다.',
-                variant: 'destructive',
-            });
-        }
-    }, [isError, error, toast]);
+    // (전역 api-client.ts에서 자동으로 에러 Toast를 띄워주므로, 개별 에러 처리는 제거)
 
     // 메뉴 데이터가 변경될 때만 재계산
     const menus = useMemo(() => menusData?.list ?? [], [menusData]);
@@ -108,12 +100,7 @@ export function useMenuManagement(): UseMenuManagementReturn {
                 variant: 'success',
             });
         } catch (error) {
-            const message = error instanceof Error ? error.message : '메뉴 등록에 실패했습니다.';
-            toast({
-                title: '등록 실패',
-                description: message,
-                variant: 'destructive',
-            });
+            // Error is handled globally by api-client.ts
             throw error;
         }
     }, [createMutation, toast]);
@@ -138,12 +125,7 @@ export function useMenuManagement(): UseMenuManagementReturn {
                 variant: 'success',
             });
         } catch (error) {
-            const message = error instanceof Error ? error.message : '메뉴 수정에 실패했습니다.';
-            toast({
-                title: '수정 실패',
-                description: message,
-                variant: 'destructive',
-            });
+            // Error is handled globally by api-client.ts
             throw error;
         }
     }, [selectedMenu, updateMutation, toast]);
@@ -169,12 +151,7 @@ export function useMenuManagement(): UseMenuManagementReturn {
                 variant: 'success',
             });
         } catch (error) {
-            const message = error instanceof Error ? error.message : '메뉴 삭제에 실패했습니다.';
-            toast({
-                title: '삭제 실패',
-                description: message,
-                variant: 'destructive',
-            });
+            // Error is handled globally by api-client.ts
             throw error;
         }
     }, [deleteMutation, toast]);

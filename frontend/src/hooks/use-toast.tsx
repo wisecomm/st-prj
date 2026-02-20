@@ -21,6 +21,18 @@ interface ToastContextType {
 
 const ToastContext = React.createContext<ToastContextType | undefined>(undefined)
 
+// 전역에서 사용할 수 있는 Toast 함수 참조
+let globalToastFn: ((props: Omit<Toast, "id">) => void) | null = null;
+
+// React 컴포넌트 외부(예: api-client.ts)에서 호출하기 위한 래퍼 함수
+export const globalToast = (props: Omit<Toast, "id">) => {
+    if (globalToastFn) {
+        globalToastFn(props);
+    } else {
+        console.warn("globalToast called before ToastProvider was initialized", props);
+    }
+};
+
 export function ToastProvider({ children }: { children: React.ReactNode }) {
     const [toasts, setToasts] = React.useState<Toast[]>([])
     const timeoutRefs = React.useRef<Map<string, NodeJS.Timeout>>(new Map())
@@ -45,6 +57,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         }, 5000)
         timeoutRefs.current.set(id, timeoutId)
     }, [])
+
+    // Provider 마운트 시 globalToastFn에 참조 연결
+    React.useEffect(() => {
+        globalToastFn = toast;
+        return () => {
+            globalToastFn = null;
+        }
+    }, [toast])
 
     const dismiss = React.useCallback((id: string) => {
         // Clear timeout when manually dismissed

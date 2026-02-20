@@ -12,6 +12,7 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosInstance } from 'axios';
 import { ApiResponse } from '@/types';
 import { serverEnv } from '@/lib/env';
+import { globalToast } from '@/hooks/use-toast';
 
 /**
  * Axios 인스턴스 생성
@@ -73,7 +74,19 @@ const createAxiosInstance = (): AxiosInstance => {
             window.location.href = '/login?expired=true';
           }
         }
+        return Promise.reject(error);
       }
+
+      // 401 이외의 통신 에러/서버 에러가 발생한 경우 자동 Toast 알림 처리
+      if (typeof window !== 'undefined') {
+        const errorMessage = extractErrorMessage(error, "요청 처리 중 오류가 발생했습니다.");
+        globalToast({
+          title: "요청 실패",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+
       return Promise.reject(error);
     }
   );

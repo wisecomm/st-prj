@@ -51,16 +51,7 @@ export function useOrderManagement() {
         staleTime: 5000, // 5초 동안 캐시 유지
     });
 
-    // Error handling effect
-    useEffect(() => {
-        if (isError) {
-            toast({
-                title: '목록 조회 실패',
-                description: error?.message || '주문 목록을 불러오는 중 오류가 발생했습니다.',
-                variant: 'destructive',
-            });
-        }
-    }, [isError, error, toast]);
+    // (전역 api-client.ts에서 자동으로 에러 Toast를 띄워주므로, 개별 에러 처리는 제거)
 
     const createMutation = useCreateOrder();
     const updateMutation = useUpdateOrder();
@@ -110,8 +101,8 @@ export function useOrderManagement() {
             }
             closeDialog();
         } catch (error) {
-            const message = error instanceof Error ? error.message : '저장에 실패했습니다.';
-            toast({ title: '저장 실패', description: message, variant: 'destructive' });
+            // Error is handled globally by api-client.ts
+            // Failed message is shown automatically
         }
     }, [selectedOrder, createMutation, updateMutation, toast, closeDialog]);
 
