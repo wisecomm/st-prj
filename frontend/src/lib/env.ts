@@ -18,6 +18,7 @@ const serverEnvSchema = z.object({
   NEXTAUTH_SECRET: z.string().default('KcYj15hzCstphnoPFlM6fav8QJ+pRj7WL3F4Zw+gu/I='),
   /** 백엔드 API URL (서버에서만 사용) */
   BACKEND_API_URL: z.string().optional(),
+  MAX_BODY_SIZE: z.number().optional(),
 });
 
 /**
@@ -35,6 +36,7 @@ export const env = clientEnvSchema.parse({
 export const serverEnv = serverEnvSchema.parse({
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
   BACKEND_API_URL: process.env.BACKEND_API_URL,
+  MAX_BODY_SIZE: process.env.MAX_BODY_SIZE,
 });
 
 
