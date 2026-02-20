@@ -36,7 +36,7 @@ export const env = clientEnvSchema.parse({
 export const serverEnv = serverEnvSchema.parse({
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
   BACKEND_API_URL: process.env.BACKEND_API_URL,
-  MAX_BODY_SIZE: process.env.MAX_BODY_SIZE,
+  MAX_BODY_SIZE: process.env.MAX_BODY_SIZE ? parseInt(process.env.MAX_BODY_SIZE, 10) : undefined,
 });
 
 
