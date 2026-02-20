@@ -3,6 +3,7 @@ import { decode } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import type { NextAuthConfig } from "next-auth";
 import { cookies } from "next/headers";
+import { serverEnv } from "./lib/env";
 
 declare module "next-auth" {
   interface Session {
@@ -30,7 +31,7 @@ const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
 
 async function refreshAccessToken(refreshToken: string) {
   try {
-    const res = await fetch(`${process.env.BACKEND_API_URL}/v1/auth/refresh`, {
+    const res = await fetch(`${serverEnv.BACKEND_API_URL}/v1/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),
@@ -71,7 +72,7 @@ function getTokenExpiry(token: string): number | null {
 }
 
 const authConfig: NextAuthConfig = {
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: serverEnv.NEXTAUTH_SECRET,
   providers: [
     Credentials({
       name: "credentials",
@@ -82,7 +83,7 @@ const authConfig: NextAuthConfig = {
       async authorize(credentials) {
         try {
           const res = await fetch(
-            `${process.env.BACKEND_API_URL}/v1/auth/login`,
+            `${serverEnv.BACKEND_API_URL}/v1/auth/login`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -203,7 +204,7 @@ export async function getServerTokens() {
     // However, the internal decode algorithm might expect a specific setup.
     const decoded = await decode({
       token: sessionToken,
-      secret: process.env.NEXTAUTH_SECRET!,
+      secret: serverEnv.NEXTAUTH_SECRET!,
       salt: salt,
     });
 
