@@ -36,7 +36,7 @@ export function useMenuManagement(): UseMenuManagementReturn {
     const { toast } = useToast();
 
     // API 훅 - 메뉴는 트리 구조로 전체 목록이 필요하므로 큰 페이지 사이즈 사용
-    const { data: menusData, isLoading, isError, error } = useMenus({ page: 0, size: 1000 });
+    const { data: menusData, isLoading, isError, error } = useMenus({ page: 1, size: 1000 });
 
     useEffect(() => {
         if (isError) {

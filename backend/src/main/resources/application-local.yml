@@ -28,6 +28,7 @@ mybatis:
 jwt:
   secret: +F7Wq6PrRGUw7Ig+UUEHP2xQZFyURaNu1HjTpfUi5Q0=
   #expiration: 30000            # Access Token: 30초 (테스트용)
+  #refresh-expiration: 60000
   expiration: 86400000  # 1일 (밀리초)
   refresh-expiration: 604800000 # Refresh Token: 7일 (밀리초)
 

@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState } from "react";
 import { isDev } from "@/lib/env";
 import { ToastProvider } from "@/hooks/use-toast";
+import { SessionWatcher } from "./session-watcher";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -23,6 +24,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
+        <SessionWatcher />
         <ToastProvider>
           {children}
           {isDev && (

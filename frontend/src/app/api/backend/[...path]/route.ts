@@ -1,16 +1,6 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { serverEnv } from "@/lib/env";
-import fs from "fs";
-import path from "path";
-
-// A helper for debugging to file, since we don't have access to the dev server console
-function fileLog(msg: string) {
-  try {
-    const logPath = path.join(process.cwd(), "proxy-debug.log");
-    fs.appendFileSync(logPath, `[${new Date().toISOString()}] ${msg}\n`);
-  } catch (e) { }
-}
 
 const BACKEND_API_URL = serverEnv.BACKEND_API_URL;
 
@@ -64,7 +54,6 @@ async function proxyRequest(req: NextRequest) {
   if (!session?.accessToken) {
     const allCookies = req.cookies.getAll().map(c => c.name);
     console.error(`[api-proxy] Unauthorized: No access token found in session. All cookies: ${allCookies.join(", ")}`);
-    fileLog(`Unauthorized: No access token in session. Cookies: ${allCookies.join(", ")} | Session keys: ${session ? Object.keys(session).join(",") : "null"}`);
     return NextResponse.json(
       {
         success: false,
@@ -132,7 +121,10 @@ async function proxyRequest(req: NextRequest) {
 
     if (backendRes.status === 401) {
       console.error(`[api-proxy] Backend returned 401 for ${backendUrl}. Token may be invalid or expired.`);
-      fileLog(`Backend returned 401 for ${backendUrl}. Token used: ${session.accessToken.substring(0, 15)}...`);
+      return NextResponse.json(
+        { success: false, message: "Unauthorized: Backend token rejected or expired" },
+        { status: 401 }
+      );
     }
 
     const resBody = await backendRes.arrayBuffer();

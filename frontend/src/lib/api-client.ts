@@ -66,12 +66,12 @@ const createAxiosInstance = (): AxiosInstance => {
         if (typeof window !== 'undefined') {
           // 세션 만료 시 로그인 페이지로 이동
           console.warn('[ApiClient] 401 Unauthorized detected. Executing logout...');
-          /*
-                    // Circular Dependency 방지를 위해 dynamic import 사용
-                    import('@/lib/auth/auth-service').then(({ authService }) => {
-                      authService.handleUnauthorized();
-                    });
-                    */
+
+          if (window.location.pathname !== '/login') {
+            // 현재 페이지의 URL을 redirect_to 파라미터로 넘길 수도 있지만, 
+            // 가장 간단하게 로그인 페이지로 바로 이동시킵니다.
+            window.location.href = '/login?expired=true';
+          }
         }
       }
       return Promise.reject(error);

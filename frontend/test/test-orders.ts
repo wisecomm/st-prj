@@ -5,8 +5,8 @@ async function testOrders() {
     const userPwd = process.env.TEST_USER_PWD || 'password';
 
     console.log(`[1] Logging into backend as ${userId}...`);
-    let accessToken;
-    let loginData;
+    let accessToken: string | undefined;
+    let loginData: any;
     try {
         const loginRes = await fetch(`${BACKEND_URL}/v1/auth/login`, {
             method: 'POST',
@@ -33,7 +33,7 @@ async function testOrders() {
             console.error('No accessToken found in response!');
             return;
         }
-        console.log(`[+] Login successful. Got Access Token (first 15 chars): ${accessToken.substring(0, 15)}...`);
+        console.log(`[+] Login successful. Got Access Token (first 15 chars): ${accessToken?.substring(0, 15)}...`);
     } catch (err) {
         console.error('Failed to connect to backend during login:', err);
         return;
@@ -84,7 +84,7 @@ async function testOrders() {
 
     // --- CREATE ---
     console.log(`\n[4] Creating a new order...`);
-    let createdOrderId = `ORD-${Date.now()}`;
+    let createdOrderId: string = `ORD-${Date.now()}`;
     try {
         const newOrderPayload = {
             orderId: createdOrderId,
@@ -177,3 +177,4 @@ async function testOrders() {
 }
 
 testOrders();
+export { };
