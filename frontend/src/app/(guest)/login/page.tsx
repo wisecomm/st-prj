@@ -25,6 +25,8 @@ export default function LoginPage() {
 
       if (result?.error) {
         setError("Invalid username or password");
+        console.log(result.error);
+        console.log("aaaaaa");
       } else {
         router.push("/home");
         router.refresh();

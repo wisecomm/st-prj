@@ -88,6 +88,10 @@ const authConfig: NextAuthConfig = {
           if (!res.ok) return null;
 
           const data = await res.json();
+          // danyoh : 2026-02-19 내부에러 확인 후 처리
+          if (data.code !== '200') {
+            throw new Error(data.message || "Login failed");
+          }
 
           return {
             id: data.data?.id?.toString() ?? "1",
