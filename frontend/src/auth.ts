@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 declare module "next-auth" {
   interface Session {
     error?: string;
+    accessToken?: string;
     user: {
       id: string;
       username: string;
@@ -41,7 +42,7 @@ async function refreshAccessToken(refreshToken: string) {
 
     const data = await res.json();
     return {
-      accessToken: data.data?.accessToken as string,
+      accessToken: data.data?.token as string,
       refreshToken: data.data?.refreshToken as string,
     };
   } catch (error) {
@@ -94,11 +95,11 @@ const authConfig: NextAuthConfig = {
           }
 
           return {
-            id: data.data?.id?.toString() ?? "1",
-            username: data.data?.username ?? (credentials?.username as string),
-            email: data.data?.email,
-            role: data.data?.role,
-            accessToken: data.data?.accessToken,
+            id: data.data?.user?.userId ?? "1",
+            username: data.data?.user?.userName ?? (credentials?.username as string),
+            email: data.data?.user?.userEmail,
+            role: data.data?.user?.roles?.[0] ?? "",
+            accessToken: data.data?.token,
             refreshToken: data.data?.refreshToken,
           };
         } catch (error) {
@@ -147,11 +148,12 @@ const authConfig: NextAuthConfig = {
     },
     async session({ session, token }) {
       // Tokens are kept in the encrypted JWT cookie only.
-      // They are accessible server-side via auth() but NOT sent to the client.
+      // We expose accessToken so the proxy and client can use it.
       if (session.user) {
         session.user.username = (token.username as string) ?? "";
         session.user.role = token.role as string | undefined;
       }
+      session.accessToken = token.accessToken as string | undefined;
       // Propagate refresh error so client can force re-login
       if (token.error) {
         session.error = token.error as string;
@@ -179,21 +181,35 @@ export async function getServerTokens() {
     cookieStore.get("authjs.session-token")?.value ??
     cookieStore.get("__Secure-authjs.session-token")?.value;
 
-  if (!sessionToken) return null;
+  if (!sessionToken) {
+    console.error("[getServerTokens] No session token found in cookies");
+    return null;
+  }
 
-  const decoded = await decode({
-    token: sessionToken,
-    secret: process.env.NEXTAUTH_SECRET!,
-    salt:
-      cookieStore.get("__Secure-authjs.session-token")?.value
-        ? "__Secure-authjs.session-token"
-        : "authjs.session-token",
-  });
+  try {
+    const salt = cookieStore.get("__Secure-authjs.session-token")?.value
+      ? "__Secure-authjs.session-token"
+      : "authjs.session-token";
 
-  if (!decoded) return null;
+    // NextAuth v5 beta relies on AUTH_SECRET natively, we are passing NEXTAUTH_SECRET.
+    // However, the internal decode algorithm might expect a specific setup.
+    const decoded = await decode({
+      token: sessionToken,
+      secret: process.env.NEXTAUTH_SECRET!,
+      salt: salt,
+    });
 
-  return {
-    accessToken: decoded.accessToken as string | undefined,
-    refreshToken: decoded.refreshToken as string | undefined,
-  };
+    if (!decoded) {
+      console.error("[getServerTokens] decoded is null or undefined");
+      return null;
+    }
+
+    return {
+      accessToken: decoded.accessToken as string | undefined,
+      refreshToken: decoded.refreshToken as string | undefined,
+    };
+  } catch (error) {
+    console.error("[getServerTokens] Token decode failed:", error);
+    return null;
+  }
 }

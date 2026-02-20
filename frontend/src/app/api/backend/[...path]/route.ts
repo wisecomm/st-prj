@@ -1,6 +1,16 @@
-import { getServerTokens } from "@/auth";
+import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { serverEnv } from "@/lib/env";
+import fs from "fs";
+import path from "path";
+
+// A helper for debugging to file, since we don't have access to the dev server console
+function fileLog(msg: string) {
+  try {
+    const logPath = path.join(process.cwd(), "proxy-debug.log");
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] ${msg}\n`);
+  } catch (e) { }
+}
 
 const BACKEND_API_URL = serverEnv.BACKEND_API_URL;
 
@@ -45,10 +55,22 @@ function isAllowedContentType(contentType: string | null): boolean {
 }
 
 async function proxyRequest(req: NextRequest) {
-  const tokens = await getServerTokens();
-  if (!tokens?.accessToken) {
+  const session = await auth();
+
+  console.log("[api-proxy] Incoming Request to:", req.url);
+  console.log("[api-proxy] Session exists:", !!session);
+  console.log("[api-proxy] Session contains accessToken:", !!session?.accessToken);
+
+  if (!session?.accessToken) {
+    const allCookies = req.cookies.getAll().map(c => c.name);
+    console.error(`[api-proxy] Unauthorized: No access token found in session. All cookies: ${allCookies.join(", ")}`);
+    fileLog(`Unauthorized: No access token in session. Cookies: ${allCookies.join(", ")} | Session keys: ${session ? Object.keys(session).join(",") : "null"}`);
     return NextResponse.json(
-      { success: false, message: "Authentication required" },
+      {
+        success: false,
+        message: "Authentication required (No Token)",
+        debug: { hasSession: !!session, cookies: allCookies }
+      },
       { status: 401 }
     );
   }
@@ -93,7 +115,7 @@ async function proxyRequest(req: NextRequest) {
 
   // Content-Type을 그대로 전달 (multipart boundary 포함)
   const headers: Record<string, string> = {
-    Authorization: `Bearer ${tokens.accessToken}`,
+    Authorization: `Bearer ${session.accessToken}`,
   };
   if (clientContentType) {
     headers["Content-Type"] = clientContentType;
@@ -107,6 +129,11 @@ async function proxyRequest(req: NextRequest) {
       headers,
       body: body ? Buffer.from(body) : undefined,
     });
+
+    if (backendRes.status === 401) {
+      console.error(`[api-proxy] Backend returned 401 for ${backendUrl}. Token may be invalid or expired.`);
+      fileLog(`Backend returned 401 for ${backendUrl}. Token used: ${session.accessToken.substring(0, 15)}...`);
+    }
 
     const resBody = await backendRes.arrayBuffer();
 
