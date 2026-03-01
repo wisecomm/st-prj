@@ -28,6 +28,9 @@ declare module "next-auth" {
 // 갱신 여유 시간 (5분)
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
 
+// 토큰 갱신 동시접근 제어(Race Condition 방지)를 위한 전역 Promise 변수
+let tokenRefreshPromise: Promise<{ accessToken: string; refreshToken: string } | null> | null = null;
+
 async function refreshAccessToken(refreshToken: string) {
   try {
     const res = await fetch(`${serverEnv.BACKEND_API_URL}/v1/auth/refresh`, {
@@ -135,18 +138,29 @@ const authConfig: NextAuthConfig = {
           expiry && Date.now() > expiry - TOKEN_REFRESH_BUFFER_MS;
 
         if (shouldRefresh && token.refreshToken) {
-          const refreshed = await refreshAccessToken(
-            token.refreshToken as string
-          );
+          try {
+            // 이미 갱신 중인 요청이 없다면 새로 갱신 요청을 시작하고 Promise를 저장합니다.
+            if (!tokenRefreshPromise) {
+              tokenRefreshPromise = refreshAccessToken(
+                token.refreshToken as string
+              );
+            }
 
-          if (refreshed) {
-            token.accessToken = refreshed.accessToken;
-            token.refreshToken = refreshed.refreshToken;
-          } else {
-            // Refresh failed — force re-login
-            token.accessToken = undefined;
-            token.refreshToken = undefined;
-            token.error = "RefreshTokenExpired";
+            // 진행 중인(또는 방금 시작한) 갱신 요청이 끝날 때까지 대기합니다.
+            const refreshed = await tokenRefreshPromise;
+
+            if (refreshed) {
+              token.accessToken = refreshed.accessToken;
+              token.refreshToken = refreshed.refreshToken;
+            } else {
+              // Refresh failed — force re-login
+              token.accessToken = undefined;
+              token.refreshToken = undefined;
+              token.error = "RefreshTokenExpired";
+            }
+          } finally {
+            // 갱신이 완료되면(성공이든 실패든) Promise를 초기화하여 다음 만료 시 다시 갱신할 수 있게 합니다.
+            tokenRefreshPromise = null;
           }
         }
       }
