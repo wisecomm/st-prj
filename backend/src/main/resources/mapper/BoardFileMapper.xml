@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.springrest.domain.boards.board.repository.BoardFileMapper">
+
+    <insert id="insert" parameterType="com.example.springrest.domain.boards.board.model.entity.BoardFile" useGeneratedKeys="true" keyProperty="fileId">
+        INSERT INTO CHMM_BOARD_FILE (
+            BOARD_ID,
+            ORG_FILE_NM,
+            STR_FILE_NM,
+            FILE_PATH,
+            FILE_SIZE,
+            FILE_EXT,
+            MIME_TYPE,
+            DOWN_CNT,
+            USE_YN,
+            SYS_INSERT_DTM,
+            SYS_INSERT_USER_ID,
+            SYS_UPDATE_DTM,
+            SYS_UPDATE_USER_ID
+        ) VALUES (
+            #{boardId},
+            #{orgFileNm},
+            #{strFileNm},
+            #{filePath},
+            #{fileSize},
+            #{fileExt},
+            #{mimeType},
+            0,
+            #{useYn},
+            NOW(),
+            #{sysInsertUserId},
+            NOW(),
+            #{sysUpdateUserId}
+        )
+    </insert>
+
+    <select id="findByBoardId" parameterType="int" resultType="com.example.springrest.domain.boards.board.model.entity.BoardFile">
+        SELECT * FROM CHMM_BOARD_FILE
+        WHERE BOARD_ID = #{boardId}
+        AND USE_YN = '1'
+        ORDER BY FILE_ID ASC
+    </select>
+
+    <select id="findById" parameterType="int" resultType="com.example.springrest.domain.boards.board.model.entity.BoardFile">
+        SELECT * FROM CHMM_BOARD_FILE
+        WHERE FILE_ID = #{fileId}
+    </select>
+
+    <delete id="delete" parameterType="int">
+        UPDATE CHMM_BOARD_FILE
+        SET USE_YN = '0',
+            SYS_UPDATE_DTM = NOW()
+        WHERE FILE_ID = #{fileId}
+    </delete>
+
+    <delete id="deleteByBoardId" parameterType="int">
+        UPDATE CHMM_BOARD_FILE
+        SET USE_YN = '0',
+            SYS_UPDATE_DTM = NOW()
+        WHERE BOARD_ID = #{boardId}
+    </delete>
+
+</mapper>

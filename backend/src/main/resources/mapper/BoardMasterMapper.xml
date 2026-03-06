@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.springrest.domain.boards.master.repository.BoardMasterMapper">
+    <resultMap id="BoardMasterResultMap" type="com.example.springrest.domain.boards.master.model.entity.BoardMaster">
+        <id property="brdId" column="BRD_ID"/>
+        <result property="brdNm" column="BRD_NM"/>
+        <result property="brdDesc" column="BRD_DESC"/>
+        <result property="replyUseYn" column="REPLY_USE_YN"/>
+        <result property="fileUseYn" column="FILE_USE_YN"/>
+        <result property="fileMaxCnt" column="FILE_MAX_CNT"/>
+        <result property="useYn" column="USE_YN"/>
+        <result property="sysInsertDtm" column="SYS_INSERT_DTM"/>
+        <result property="sysInsertUserId" column="SYS_INSERT_USER_ID"/>
+        <result property="sysUpdateDtm" column="SYS_UPDATE_DTM"/>
+        <result property="sysUpdateUserId" column="SYS_UPDATE_USER_ID"/>
+    </resultMap>
+
+    <sql id="BoardMasterColumns">
+        BRD_ID, BRD_NM, BRD_DESC, REPLY_USE_YN, FILE_USE_YN, FILE_MAX_CNT, USE_YN,
+        SYS_INSERT_DTM, SYS_INSERT_USER_ID, SYS_UPDATE_DTM, SYS_UPDATE_USER_ID
+    </sql>
+
+    <select id="findById" resultMap="BoardMasterResultMap">
+        SELECT <include refid="BoardMasterColumns"/>
+        FROM CHMM_BOARD_MASTER
+        WHERE BRD_ID = #{brdId}
+    </select>
+
+    <select id="findAll" resultMap="BoardMasterResultMap">
+        SELECT <include refid="BoardMasterColumns"/>
+        FROM CHMM_BOARD_MASTER
+        <where>
+            <if test="brdNm != null and brdNm != ''">
+                AND BRD_NM LIKE CONCAT('%', #{brdNm}, '%')
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND SYS_INSERT_DTM &gt;= #{startDate}::timestamp
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND SYS_INSERT_DTM &lt;= #{endDate}::timestamp
+            </if>
+        </where>
+        ORDER BY BRD_ID
+    </select>
+
+    <insert id="insert">
+        INSERT INTO CHMM_BOARD_MASTER (
+            <include refid="BoardMasterColumns"/>
+        ) VALUES (
+            #{brdId}, #{brdNm}, #{brdDesc}, #{replyUseYn}, #{fileUseYn}, #{fileMaxCnt}, #{useYn},
+            NOW(), #{sysInsertUserId}, NOW(), #{sysUpdateUserId}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE CHMM_BOARD_MASTER
+        SET BRD_NM = #{brdNm},
+            BRD_DESC = #{brdDesc},
+            REPLY_USE_YN = #{replyUseYn},
+            FILE_USE_YN = #{fileUseYn},
+            FILE_MAX_CNT = #{fileMaxCnt},
+            USE_YN = #{useYn},
+            SYS_UPDATE_DTM = NOW(),
+            SYS_UPDATE_USER_ID = #{sysUpdateUserId}
+        WHERE BRD_ID = #{brdId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM CHMM_BOARD_MASTER
+        WHERE BRD_ID = #{brdId}
+    </delete>
+</mapper>

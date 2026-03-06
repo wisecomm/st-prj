@@ -1,0 +1,78 @@
+-- 1. CHMM_BOARD_MASTER (게시판 마스터 관리)
+-- 독립된 여러 개의 게시판을 생성하고 설정하는 테이블
+CREATE TABLE CHMM_BOARD_MASTER (
+    BRD_ID          VARCHAR(20) PRIMARY KEY,    -- 게시판 코드 (예: 'NOTICE', 'FREE', 'QNA')
+    BRD_NM          VARCHAR(100) NOT NULL,      -- 게시판 명
+    BRD_DESC        TEXT,                       -- 게시판 설명
+    REPLY_USE_YN    CHAR(1) DEFAULT '1',        -- 댓글 사용 여부 ('1': 사용, '0': 미사용)
+    FILE_USE_YN     CHAR(1) DEFAULT '1',        -- 파일 첨부 사용 여부
+    FILE_MAX_CNT    INTEGER DEFAULT 5,          -- 최대 파일 첨부 개수
+    USE_YN          CHAR(1) DEFAULT '1' NOT NULL, -- 사용 여부
+    SYS_INSERT_DTM  TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP, -- 등록 일시
+    SYS_INSERT_USER_ID VARCHAR(50),             -- 등록자 ID
+    SYS_UPDATE_DTM  TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP, -- 수정 일시
+    SYS_UPDATE_USER_ID VARCHAR(50)              -- 수정자 ID
+);
+
+
+
+-- 3. CHMM_BOARD (게시물 관리)
+-- 게시판 마스터와 카테고리에 링크된 본문 테이블
+CREATE TABLE CHMM_BOARD (
+    BOARD_ID        SERIAL PRIMARY KEY,          -- 게시물 일련번호
+    BRD_ID          VARCHAR(20) NOT NULL,       -- 게시판 마스터 ID (FK)
+    USER_ID         VARCHAR(50) NOT NULL,       -- 작성자 ID (CHMM_USER_INFO와 명칭 통일)
+    TITLE           VARCHAR(1000) NOT NULL,     -- 제목
+    CONTENTS        TEXT,                       -- 내용
+    HIT_CNT         INTEGER DEFAULT 0,          -- 조회수
+    SECRET_YN       CHAR(1) DEFAULT '0',        -- 비밀글 여부
+    USE_YN          CHAR(1) DEFAULT '1' NOT NULL, -- 사용 여부 (삭제 시 '0')
+    SYS_INSERT_DTM  TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    SYS_INSERT_USER_ID VARCHAR(50),
+    SYS_UPDATE_DTM  TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    SYS_UPDATE_USER_ID VARCHAR(50),
+    FOREIGN KEY (BRD_ID) REFERENCES CHMM_BOARD_MASTER(BRD_ID) ON DELETE CASCADE
+
+);
+
+-- 조회 성능 최적화 인덱스
+
+CREATE INDEX IX_CHMM_BOARD_REG_DATE ON CHMM_BOARD (SYS_INSERT_DTM DESC);
+
+-- 4. CHMM_BOARD_COMMENT (게시물 댓글 관리)
+CREATE TABLE CHMM_BOARD_COMMENT (
+    COMMENT_ID      SERIAL PRIMARY KEY,          -- 댓글 일련번호
+    BOARD_ID        INTEGER NOT NULL,           -- 게시물 일련번호 (FK)
+    USER_ID         VARCHAR(50) NOT NULL,       -- 작성자 ID
+    PARENT_ID       INTEGER,                    -- 부모 댓글 ID (대댓글 지원)
+    DEPTH           INTEGER DEFAULT 0,          -- 댓글 깊이
+    COMMENT_TEXT    VARCHAR(4000) NOT NULL,     -- 댓글 내용
+    USE_YN          CHAR(1) DEFAULT '1' NOT NULL,
+    SYS_INSERT_DTM  TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    SYS_INSERT_USER_ID VARCHAR(50),
+    SYS_UPDATE_DTM  TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    SYS_UPDATE_USER_ID VARCHAR(50),
+    FOREIGN KEY (BOARD_ID) REFERENCES CHMM_BOARD(BOARD_ID) ON DELETE CASCADE,
+    FOREIGN KEY (PARENT_ID) REFERENCES CHMM_BOARD_COMMENT(COMMENT_ID) ON DELETE CASCADE
+);
+
+-- 5. CHMM_BOARD_FILE (게시물 첨부파일 관리)
+CREATE TABLE CHMM_BOARD_FILE (
+    FILE_ID         SERIAL PRIMARY KEY,          -- 파일 일련번호
+    BOARD_ID        INTEGER NOT NULL,           -- 게시물 일련번호 (FK)
+    ORG_FILE_NM     VARCHAR(255) NOT NULL,      -- 원본 파일명
+    STR_FILE_NM     VARCHAR(255) NOT NULL,      -- 저장용 파일명
+    FILE_PATH       VARCHAR(500) NOT NULL,      -- 저장 경로
+    FILE_SIZE       BIGINT,                     -- 파일 크기
+    FILE_EXT        VARCHAR(10),                -- 확장자
+    MIME_TYPE       VARCHAR(100),               -- MIME 타입 (image/png 등)
+    DOWN_CNT        INTEGER DEFAULT 0,          -- 다운로드 횟수
+    USE_YN          CHAR(1) DEFAULT '1' NOT NULL,
+    SYS_INSERT_DTM  TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    SYS_INSERT_USER_ID VARCHAR(50),
+    SYS_UPDATE_DTM  TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    SYS_UPDATE_USER_ID VARCHAR(50),
+    FOREIGN KEY (BOARD_ID) REFERENCES CHMM_BOARD(BOARD_ID) ON DELETE CASCADE
+);
+
+CREATE INDEX IX_CHMM_BOARD_FILE_BOARD ON CHMM_BOARD_FILE (BOARD_ID);
