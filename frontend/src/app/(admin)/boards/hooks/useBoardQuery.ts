@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getBoards, createBoard, updateBoard, deleteBoard, BoardMaster } from "@/app/(admin)/(with-header)/boards/master/actions";
+import { getBoards, createBoard, updateBoard, deleteBoard, BoardMaster } from "@/app/(admin)/boards/master/actions";
 
 export const boardKeys = {
     all: ["boards"] as const,

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getBoards, getBoardById, createBoard, updateBoard, deleteBoard, Board, BoardSearchDto } from "@/app/(admin)/(with-header)/boards/board/actions";
+import { getBoards, getBoardById, createBoard, updateBoard, deleteBoard, Board, BoardSearchDto } from "@/app/(admin)/boards/board/actions";
 
 export const boardPostKeys = {
     all: ["boardPosts"] as const,

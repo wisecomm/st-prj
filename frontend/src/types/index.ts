@@ -10,8 +10,65 @@ export interface PageResponse<T> {
     pageNum: number;
     pageSize: number;
     pages: number;
+}export interface UserDetail {
+    userId: string;
+    userEmail: string;
+    userMobile: string;
+    userName: string;
+    userNick: string;
+    userMsg?: string;
+    userDesc?: string;
+    userStatCd: string;
+    userSnsid?: string;
+    useYn: string;
+    roleIds?: string[];
+    sysInsertDtm?: string;
+    sysUpdateDtm?: string;
 }
 
+export interface UserInfo {
+    userId: string;
+    userName: string;
+    userEmail: string;
+    roles: string[];
+    createdAt?: string;
+    lastLoginAt?: string;
+}
 
+export interface LoginData {
+    token: string;
+    refreshToken: string;
+    tokenType: string;
+    expiresIn: number;
+    user: UserInfo;
+}
 
+export interface MenuInfo {
+    menuId: string;
+    menuLvl: number;
+    menuUri?: string | null;
+    menuImgUri?: string | null;
+    menuName: string;
+    upperMenuId?: string | null;
+    menuDesc?: string | null;
+    menuSeq?: number | null;
+    useYn: string;
+    adminMenuYn?: string;
+    personalDataYn?: string;
+    leftMenuYn?: string;
+    sysInsertDtm?: string;
+    sysUpdateDtm?: string;
+}
+
+export interface RoleInfo {
+    roleId: string;
+    roleName: string;
+    roleDesc?: string;
+    menuIds?: string[];
+    useYn: string;
+    sysInsertDtm?: string;
+    sysUpdateDtm?: string;
+    sysInsertUserId?: string;
+    sysUpdateUserId?: string;
+}
 
