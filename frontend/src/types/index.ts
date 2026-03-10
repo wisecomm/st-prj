@@ -69,6 +69,30 @@ export interface RoleInfo {
     sysInsertDtm?: string;
     sysUpdateDtm?: string;
     sysInsertUserId?: string;
-    sysUpdateUserId?: string;
+}
+
+export interface Schedule {
+    uid: number;
+    beanName: string;
+    beanParam?: string;
+    used: boolean;
+    stop: boolean;
+    cron: string;
+    comment?: string;
+    createTime?: string;
+    creator?: string;
+    updateTime?: string;
+    updater?: string;
+}
+
+export interface ScheduleRequest {
+    beanName: string;
+    beanParam?: string;
+    used: boolean;
+    stop: boolean;
+    cron: string;
+    comment?: string;
+    creator?: string;
+    updater?: string;
 }
 

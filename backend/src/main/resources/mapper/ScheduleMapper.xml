@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.springrest.domain.scheduler.repository.ScheduleMapper">
+
+    <resultMap id="ScheduleResultMap" type="com.example.springrest.domain.scheduler.model.entity.Schedule">
+        <id property="uid" column="UID" />
+        <result property="beanName" column="BEAN_NAME" />
+        <result property="beanParam" column="BEAN_PARAM" />
+        <result property="used" column="USED" />
+        <result property="stop" column="STOP" />
+        <result property="cron" column="CRON" />
+        <result property="comment" column="COMMENT" />
+        <result property="createTime" column="CREATE_TIME" />
+        <result property="creator" column="CREATOR" />
+        <result property="updateTime" column="UPDATE_TIME" />
+        <result property="updater" column="UPDATER" />
+    </resultMap>
+
+    <sql id="scheduleColumns">
+        UID, BEAN_NAME, BEAN_PARAM, USED, STOP, CRON, COMMENT, CREATE_TIME, CREATOR, UPDATE_TIME, UPDATER
+    </sql>
+
+    <!-- 전체 조회 -->
+    <select id="findAll" resultMap="ScheduleResultMap">
+        SELECT <include refid="scheduleColumns"/>
+        FROM SA_SYNC_SCHEDULE
+        ORDER BY UID DESC
+    </select>
+
+    <!-- 활성화된 스케줄 조회 (서버 시작 시 로드용) -->
+    <select id="findActiveSchedules" resultMap="ScheduleResultMap">
+        SELECT <include refid="scheduleColumns"/>
+        FROM SA_SYNC_SCHEDULE
+        WHERE USED = true
+        ORDER BY UID ASC
+    </select>
+
+    <!-- 단건 상세 조회 -->
+    <select id="findById" resultMap="ScheduleResultMap">
+        SELECT <include refid="scheduleColumns"/>
+        FROM SA_SYNC_SCHEDULE
+        WHERE UID = #{uid}
+    </select>
+
+    <!-- 삽입 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="uid">
+        INSERT INTO SA_SYNC_SCHEDULE (
+            BEAN_NAME,
+            BEAN_PARAM,
+            USED,
+            STOP,
+            CRON,
+            COMMENT,
+            CREATOR,
+            UPDATER
+        ) VALUES (
+            #{beanName},
+            #{beanParam},
+            #{used},
+            #{stop},
+            #{cron},
+            #{comment},
+            #{creator},
+            #{updater}
+        )
+    </insert>
+
+    <!-- 수정 -->
+    <update id="update">
+        UPDATE SA_SYNC_SCHEDULE
+        <set>
+            <if test="beanName != null">BEAN_NAME = #{beanName},</if>
+            <if test="beanParam != null">BEAN_PARAM = #{beanParam},</if>
+            <if test="used != null">USED = #{used},</if>
+            <if test="stop != null">STOP = #{stop},</if>
+            <if test="cron != null">CRON = #{cron},</if>
+            <if test="comment != null">COMMENT = #{comment},</if>
+            <if test="updater != null">UPDATER = #{updater},</if>
+        </set>
+        WHERE UID = #{uid}
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="delete">
+        DELETE FROM SA_SYNC_SCHEDULE
+        WHERE UID = #{uid}
+    </delete>
+
+</mapper>
