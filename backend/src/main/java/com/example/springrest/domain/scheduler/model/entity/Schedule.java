@@ -19,7 +19,7 @@ public class Schedule {
     private String beanName; // 스케줄 빈
     private String beanParam; // 스케줄 파라메터 (JSON)
     private Boolean used; // 사용여부 (1: true, 0: false)
-    private Boolean stop; // 실행시 종료여부 (1: true, 0: false)
+    private Boolean dupStop; // 중복 실행 방지여부 (1: true, 0: false)
     private String cron; // 스케줄 (Cron expression)
     private String comment; // 스케줄 설명
     private LocalDateTime createTime; // 생성시간

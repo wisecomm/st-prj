@@ -5,7 +5,7 @@ CREATE TABLE SA_SYNC_SCHEDULE (
     BEAN_NAME     VARCHAR(255) DEFAULT NULL,                  -- 스케줄 빈
     BEAN_PARAM    TEXT DEFAULT NULL,                          -- 스케줄 파라메터
     USED          BOOLEAN DEFAULT FALSE,                      -- 사용여부
-    STOP          BOOLEAN DEFAULT FALSE,                      -- 실행시 종료여부
+    DUP_STOP      BOOLEAN DEFAULT FALSE,                      -- 실행시 종료여부
     CRON          VARCHAR(32) DEFAULT NULL,                   -- 스케줄
     COMMENT       VARCHAR(255) DEFAULT NULL,                  -- 스케줄 설명
     CREATE_TIME   TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,         -- 생성시간

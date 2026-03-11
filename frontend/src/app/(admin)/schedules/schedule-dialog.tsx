@@ -30,7 +30,7 @@ const scheduleFormSchema = z.object({
     beanParam: z.string().optional(),
     comment: z.string().optional(),
     used: z.boolean(),
-    stop: z.boolean(),
+    dupStop: z.boolean(),
     creator: z.string().optional(),
     updater: z.string().optional(),
 });
@@ -55,7 +55,7 @@ export function ScheduleDialog({ open, onOpenChange, schedule, onSubmit }: Sched
             beanParam: "",
             comment: "",
             used: false,
-            stop: false,
+            dupStop: false,
             creator: "admin",
             updater: "admin",
         },
@@ -70,7 +70,7 @@ export function ScheduleDialog({ open, onOpenChange, schedule, onSubmit }: Sched
                     beanParam: schedule.beanParam || "",
                     comment: schedule.comment || "",
                     used: Boolean(schedule.used),
-                    stop: Boolean(schedule.stop),
+                    dupStop: Boolean(schedule.dupStop),
                     creator: schedule.creator || "admin",
                     updater: schedule.updater || "admin",
                 });
@@ -81,7 +81,7 @@ export function ScheduleDialog({ open, onOpenChange, schedule, onSubmit }: Sched
                     beanParam: "",
                     comment: "",
                     used: false,
-                    stop: false,
+                    dupStop: false,
                     creator: "admin",
                     updater: "admin",
                 });
@@ -97,7 +97,7 @@ export function ScheduleDialog({ open, onOpenChange, schedule, onSubmit }: Sched
             beanParam: data.beanParam,
             comment: data.comment,
             used: data.used,
-            stop: data.stop,
+            dupStop: data.dupStop,
             creator: data.creator,
             updater: data.updater,
         };
@@ -231,13 +231,13 @@ export function ScheduleDialog({ open, onOpenChange, schedule, onSubmit }: Sched
 
                             <FormField
                                 control={form.control}
-                                name="stop"
+                                name="dupStop"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-row items-center justify-between rounded-lg gap-4">
                                         <div className="space-y-0.5">
-                                            <FormLabel className="text-sm font-bold text-rose-600 dark:text-rose-400">강제 정지 (Stop)</FormLabel>
+                                            <FormLabel className="text-sm font-bold text-rose-600 dark:text-rose-400">중복 실행 방지 (Dup Stop)</FormLabel>
                                             <FormDescription className="text-xs text-muted-foreground">
-                                                실행 도중 이면 강제로 정지시킵니다 (사용주의).
+                                                이미 실행 중인 스케줄이 있을 때 중지 후 새로 실행합니다.
                                             </FormDescription>
                                         </div>
                                         <FormControl>

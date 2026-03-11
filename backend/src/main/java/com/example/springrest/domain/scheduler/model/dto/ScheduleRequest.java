@@ -8,7 +8,7 @@ public class ScheduleRequest {
     private String beanName;
     private String beanParam;
     private Boolean used;
-    private Boolean stop;
+    private Boolean dupStop;
     private String cron;
     private String comment;
     private String creator;
@@ -19,7 +19,7 @@ public class ScheduleRequest {
                 .beanName(this.beanName)
                 .beanParam(this.beanParam)
                 .used(this.used)
-                .stop(this.stop)
+                .dupStop(this.dupStop)
                 .cron(this.cron)
                 .comment(this.comment)
                 .creator(this.creator)

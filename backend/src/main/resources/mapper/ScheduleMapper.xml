@@ -10,7 +10,7 @@
         <result property="beanName" column="BEAN_NAME" />
         <result property="beanParam" column="BEAN_PARAM" />
         <result property="used" column="USED" />
-        <result property="stop" column="STOP" />
+        <result property="dupStop" column="DUP_STOP" />
         <result property="cron" column="CRON" />
         <result property="comment" column="COMMENT" />
         <result property="createTime" column="CREATE_TIME" />
@@ -20,7 +20,7 @@
     </resultMap>
 
     <sql id="scheduleColumns">
-        UID, BEAN_NAME, BEAN_PARAM, USED, STOP, CRON, COMMENT, CREATE_TIME, CREATOR, UPDATE_TIME, UPDATER
+        UID, BEAN_NAME, BEAN_PARAM, USED, DUP_STOP, CRON, COMMENT, CREATE_TIME, CREATOR, UPDATE_TIME, UPDATER
     </sql>
 
     <!-- 전체 조회 -->
@@ -51,7 +51,7 @@
             BEAN_NAME,
             BEAN_PARAM,
             USED,
-            STOP,
+            DUP_STOP,
             CRON,
             COMMENT,
             CREATOR,
@@ -60,7 +60,7 @@
             #{beanName},
             #{beanParam},
             #{used},
-            #{stop},
+            #{dupStop},
             #{cron},
             #{comment},
             #{creator},
@@ -75,7 +75,7 @@
             <if test="beanName != null">BEAN_NAME = #{beanName},</if>
             <if test="beanParam != null">BEAN_PARAM = #{beanParam},</if>
             <if test="used != null">USED = #{used},</if>
-            <if test="stop != null">STOP = #{stop},</if>
+            <if test="dupStop != null">DUP_STOP = #{dupStop},</if>
             <if test="cron != null">CRON = #{cron},</if>
             <if test="comment != null">COMMENT = #{comment},</if>
             <if test="updater != null">UPDATER = #{updater},</if>

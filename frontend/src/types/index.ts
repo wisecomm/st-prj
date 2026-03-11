@@ -76,7 +76,7 @@ export interface Schedule {
     beanName: string;
     beanParam?: string;
     used: boolean;
-    stop: boolean;
+    dupStop: boolean;
     cron: string;
     comment?: string;
     createTime?: string;
@@ -89,7 +89,7 @@ export interface ScheduleRequest {
     beanName: string;
     beanParam?: string;
     used: boolean;
-    stop: boolean;
+    dupStop: boolean;
     cron: string;
     comment?: string;
     creator?: string;

@@ -37,7 +37,7 @@ public class ScheduleService {
     // 실행 중인 스케줄 작업을 보관하는 맵 (단일 인스턴스 기준)
     private final Map<Long, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
 
-    // 스케줄 UID별 현재 실행 중인 스레드를 추적하는 맵 (STOP=true 시 기존 실행 중지용)
+    // 스케줄 UID별 현재 실행 중인 스레드를 추적하는 맵 (DUP_STOP=true 시 기존 실행 중지용)
     private final Map<Long, Thread> runningScheduleThreads = new ConcurrentHashMap<>();
 
     @PostConstruct
@@ -165,7 +165,7 @@ public class ScheduleService {
     }
 
     /**
-     * 실행 시점에 DB를 조회하여 STOP=true이면 기존 실행 중지 후 새로 실행하는 Runnable 생성
+     * 실행 시점에 DB를 조회하여 DUP_STOP=true이면 기존 실행 중지 후 새로 실행하는 Runnable 생성
      */
     private Runnable createRunnableTask(Long uid, String beanName, String beanParam, String methodStr, String worker) {
         return () -> {
@@ -178,12 +178,12 @@ public class ScheduleService {
                     return;
                 }
 
-                // STOP=true: 이미 실행 중인 동일 스케줄이 있으면 중지 후 새로 실행, 없으면 그냥 실행
-                // STOP=false: 무조건 실행
-                if (Boolean.TRUE.equals(currentStatus.getStop())) {
+                // DUP_STOP=true: 이미 실행 중인 동일 스케줄이 있으면 중지 후 새로 실행, 없으면 그냥 실행
+                // DUP_STOP=false: 무조건 실행
+                if (Boolean.TRUE.equals(currentStatus.getDupStop())) {
                     Thread runningThread = runningScheduleThreads.get(uid);
                     if (runningThread != null && runningThread.isAlive()) {
-                        log.info("스케줄 uid={} 이미 실행 중. STOP=true, 기존 실행 중지 후 재실행.", uid);
+                        log.info("스케줄 uid={} 이미 실행 중. DUP_STOP=true, 기존 실행 중지 후 재실행.", uid);
                         runningThread.interrupt();
                         try {
                             runningThread.join(5000); // 최대 5초 대기
