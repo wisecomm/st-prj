@@ -1,8 +1,11 @@
 package com.example.springrest.domain.scheduler.service;
 
+import com.example.springrest.domain.scheduler.model.dto.ScheduleLogResponse;
 import com.example.springrest.domain.scheduler.model.dto.ScheduleRequest;
 import com.example.springrest.domain.scheduler.model.dto.ScheduleResponse;
 import com.example.springrest.domain.scheduler.model.entity.Schedule;
+import com.example.springrest.domain.scheduler.model.entity.ScheduleLog;
+import com.example.springrest.domain.scheduler.repository.ScheduleLogMapper;
 import com.example.springrest.domain.scheduler.repository.ScheduleMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,7 @@ import java.util.stream.Collectors;
 public class ScheduleService {
 
     private final ScheduleMapper scheduleMapper;
+    private final ScheduleLogMapper scheduleLogMapper;
     private final ApplicationContext applicationContext;
     private final ThreadPoolTaskScheduler taskScheduler;
 
@@ -47,6 +51,13 @@ public class ScheduleService {
     }
 
     // --- CRUD ---
+
+    @Transactional(readOnly = true)
+    public List<ScheduleLogResponse> getAllScheduleLogs() {
+        return scheduleLogMapper.findAllLogs().stream()
+                .map(ScheduleLogResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
 
     @Transactional(readOnly = true)
     public List<ScheduleResponse> getAllSchedules() {
@@ -114,7 +125,8 @@ public class ScheduleService {
             return;
         }
 
-        Runnable task = createRunnableTask(schedule.getUid(), schedule.getBeanName(), schedule.getBeanParam());
+        Runnable task = createRunnableTask(schedule.getUid(), schedule.getBeanName(), schedule.getBeanParam(), "S",
+                "system");
 
         try {
             ScheduledFuture<?> future = taskScheduler.schedule(task, new CronTrigger(schedule.getCron()));
@@ -145,7 +157,8 @@ public class ScheduleService {
                 .orElseThrow(() -> new RuntimeException("Schedule not found: " + uid));
 
         log.info("Manual execution triggered for schedule uid={}", uid);
-        Runnable task = createRunnableTask(schedule.getUid(), schedule.getBeanName(), schedule.getBeanParam());
+        Runnable task = createRunnableTask(schedule.getUid(), schedule.getBeanName(), schedule.getBeanParam(), "D",
+                "admin");
 
         // 별도 스레드풀에서 즉시 실행
         taskScheduler.execute(task);
@@ -154,7 +167,7 @@ public class ScheduleService {
     /**
      * 실행 시점에 DB를 조회하여 Stop=1 (종료여부) 이면 취소하는 Runnable 생성
      */
-    private Runnable createRunnableTask(Long uid, String beanName, String beanParam) {
+    private Runnable createRunnableTask(Long uid, String beanName, String beanParam, String methodStr, String worker) {
         return () -> {
             try {
                 // 매 실행마다 DB 상태 확인
@@ -184,6 +197,20 @@ public class ScheduleService {
                     count.incrementAndGet();
                 }
 
+                ScheduleLog scheduleLog = ScheduleLog.builder()
+                        .corpCode(null)
+                        .beanName(beanName)
+                        .method(methodStr)
+                        .result("I")
+                        .worker(worker)
+                        .build();
+
+                try {
+                    scheduleLogMapper.insertLog(scheduleLog);
+                } catch (Exception logEx) {
+                    log.error("Failed to insert schedule start log", logEx);
+                }
+
                 try {
                     log.info("Executing Dynamic Job -> uid={}, bean={}", uid, beanName);
                     Object bean = applicationContext.getBean(beanName);
@@ -197,16 +224,39 @@ public class ScheduleService {
                             method.invoke(bean);
                         }
                     } else {
-                        log.error("스케줄 빈({})에서 'execute' 메서드를 찾을 수 없습니다.", beanName);
+                        throw new RuntimeException("스케줄 빈(" + beanName + ")에서 'execute' 메서드를 찾을 수 없습니다.");
                     }
                     log.info("스케줄 동적 작업 완료 -> uid={}, bean={}", uid, beanName);
 
+                    if (scheduleLog.getUid() != null) {
+                        try {
+                            scheduleLog.setResult("S");
+                            scheduleLog.setMessage("Success");
+                            scheduleLogMapper.updateLog(scheduleLog);
+                        } catch (Exception ignore) {
+                        }
+                    }
+                } catch (Exception ex) {
+                    log.error("스케줄 작업 실행 중 오류 발생 -> uid={}, bean={}", uid, beanName, ex);
+                    if (scheduleLog.getUid() != null) {
+                        try {
+                            scheduleLog.setResult("F");
+                            String errMsg = ex.getMessage();
+                            if (ex.getCause() != null) {
+                                errMsg = ex.getCause().getMessage();
+                            }
+                            scheduleLog.setMessage(errMsg != null ? errMsg.substring(0, Math.min(errMsg.length(), 500))
+                                    : "Unknown Error");
+                            scheduleLogMapper.updateLog(scheduleLog);
+                        } catch (Exception ignore) {
+                        }
+                    }
                 } finally {
                     count.decrementAndGet();
                 }
 
             } catch (Exception e) {
-                log.error("스케줄 작업 실행 중 오류 발생 -> uid={}, bean={}", uid, beanName, e);
+                log.error("스케줄 작업 진입 중 오류 발생 -> uid={}, bean={}", uid, beanName, e);
             }
         };
     }

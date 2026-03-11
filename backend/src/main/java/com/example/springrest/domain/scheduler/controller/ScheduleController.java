@@ -1,5 +1,6 @@
 package com.example.springrest.domain.scheduler.controller;
 
+import com.example.springrest.domain.scheduler.model.dto.ScheduleLogResponse;
 import com.example.springrest.domain.scheduler.model.dto.ScheduleRequest;
 import com.example.springrest.domain.scheduler.model.dto.ScheduleResponse;
 import com.example.springrest.domain.scheduler.service.ScheduleService;
@@ -25,6 +26,11 @@ public class ScheduleController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<ScheduleResponse>>> getAllSchedules() {
         return ResponseEntity.ok(ApiResponse.success(scheduleService.getAllSchedules()));
+    }
+
+    @GetMapping("/logs")
+    public ResponseEntity<ApiResponse<List<ScheduleLogResponse>>> getAllScheduleLogs() {
+        return ResponseEntity.ok(ApiResponse.success(scheduleService.getAllScheduleLogs()));
     }
 
     @GetMapping("/{uid}")

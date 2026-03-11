@@ -96,3 +96,15 @@ export interface ScheduleRequest {
     updater?: string;
 }
 
+export interface ScheduleLog {
+    uid: number;
+    corpCode?: string;
+    beanName: string;
+    method: string;
+    result: string;
+    message?: string;
+    startTime?: string;
+    endTime?: string;
+    worker?: string;
+}
+
