@@ -1,0 +1,14 @@
+  
+  - 자바 다운로드 ZIP 21 버전 
+  - 복사 위치 확인 : C:\java\openjdk-21.0.10.0.7-1
+
+- gradlew.bat 파일에 아래 내용 추가
+set "JAVA_HOME=C:\java\openjdk-21.0.10.0.7-1"
+
+- gradle.properties 파일 수정
+org.gradle.java.home=C:/java/openjdk-21.0.10.0.7-1
+
+
+# 깃설정
+git config --global user.name "danyoh"
+git config --global user.email "danyoh@gmial.com"
